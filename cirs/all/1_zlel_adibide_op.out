@@ -1,0 +1,46 @@
+
+**** 03/22/21 18:22:50 *********** Evaluation PSpice (Nov 1999) **************
+
+ I01 0 1 0 0 1 0 0 0  
+
+
+ ****     CIRCUIT DESCRIPTION
+
+
+******************************************************************************
+
+
+
+r10 1 0 0 0 4 0 0 0
+--------$
+ERROR -- Value may not be 0
+r13 1 3 0 0 1 0 0 0
+--------$
+ERROR -- Value may not be 0
+h21 2 1 0 0 4 0 0 r30
+--------$
+ERROR -- Must be V
+r20 2 0 0 0 1 0 0 0
+--------$
+ERROR -- Value may not be 0
+g23 3 2 0 0 2 0 0 r13
+--------------$
+ERROR -- Extra text on line
+r30 3 0 0 0 4 0 0 0
+--------$
+ERROR -- Value may not be 0
+r34 3 4 0 0 2 0 0 0
+--------$
+ERROR -- Value may not be 0
+v40 4 0 0 0 10 0 0 0
+----------$
+ERROR -- Expecting keyword STIMULUS, saw 0.
+
+.op 0 0 0 0 0 0 0 0
+----$
+ERROR -- Extra text on line
+.DC 0 0 0 0 0 10 0.1 V1
+----$
+ERROR -- Must be 'I' or 'V'
+
+
