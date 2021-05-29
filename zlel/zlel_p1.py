@@ -11,7 +11,7 @@
 
 import numpy as np
 import sys
-import zlel_p2 as p2
+import zlel.zlel_p2 as p2
 import math
 
 
@@ -324,7 +324,6 @@ class branch:
                "=e" + str(self.outcoming_node) +
                "-e" + str(self.incoming_node) + "\n")
 
-
     def is_node_in(self, node):
         return node == self.outcoming_node or node == self.incoming_node
 
@@ -379,8 +378,7 @@ class branch:
             elif self.name[-1] == "C":
                 row[self.N - 1] = self.transistorValues(vbe, Vce)[2]
                 row[self.N] = self.transistorValues(vbe, Vce)[3]
-                
-            
+
         return row
 
     def get_N_row(self, branch_list, Vi=0.6):
@@ -799,10 +797,10 @@ def solveNonLinealOP(b, n):
     while True:
         for index in nonLinealIndex:
             nonLinealVoltages[index] = currentSol[index+n-1]
-            
+
         Mi = get_M_matrix(branch_list, nonLinealVoltages)
         Ni = get_N_matrix(branch_list, nonLinealVoltages)
-        Usi = get_Us_matrix(branch_list, nonLinealVoltages = nonLinealVoltages)
+        Usi = get_Us_matrix(branch_list, nonLinealVoltages=nonLinealVoltages)
         Ti = get_T_matrix(Mi, Ni, A)
         Ui = get_U_matrix(A, Usi)
         prevSol = currentSol
@@ -814,10 +812,10 @@ def solveNonLinealOP(b, n):
                 correct = False
         iteration += 1
         if correct:
-            p2.print_solution(currentSol,b,n)
+            p2.print_solution(currentSol, b, n)
             break
-        elif iteration>max_iteration:
-            print("todo mal",)
+        elif iteration > max_iteration:
+            print("todo mal")
             break
 
 
@@ -856,7 +854,6 @@ if __name__ == "__main__":
     Us = get_Us_matrix(branch_list)
     T = get_T_matrix(M, N, A)
     U = get_U_matrix(A, Us)
-
 
     # for .DC and .TR
     filenameDC = filename[:-3] + "dc"
