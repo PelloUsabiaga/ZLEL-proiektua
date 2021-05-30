@@ -316,6 +316,9 @@ class branch:
         for i in range(len(control)):
             control[i] = control[i].upper()
 
+    def insert_DC_value(self, value):
+        self.value[0] = value
+
     def __str__(self):
         return("\t" + str(self.printN) + ". branch:\t" + self.printName +
                ",\ti" + str(self.printN) +
@@ -512,7 +515,6 @@ class branch:
         B = self.value[2]
         alphaF = B / (1 + B)
         alphaR = (Ies / Ics) * alphaF
-        print(vbe)
         G11 = -(Ies/Vt) * math.exp(vbe / Vt)
         G22 = -(Ics/Vt) * math.exp(vbc / Vt)
         G12 = -alphaR * G22
@@ -521,8 +523,6 @@ class branch:
         - alphaR * Ics * (math.exp(vbc/Vt) - 1)
         Ic = G21 * vbe + G22 * vbc - alphaF * Ies * (math.exp(vbe/Vt) - 1)
         + Ics * (math.exp(vbc/Vt) - 1)
-        print("wololo")
-        print(G11, G12, G21, G22, Ie, Ic)
         return (G11, G12, G21, G22, Ie, Ic)
 
 
@@ -749,7 +749,7 @@ def get_el_branches(name, nd, N, val, ctr, nonLinealBranchN):
         brch_array = np.append(brch_array,
                                branch(name[0]+brch_tpl[2],
                                       [nd[brch_tpl[0]], nd[brch_tpl[1]]],
-                                      N, N - nonLinealBranchN, val, ctr,
+                                      N, N + 1, val, ctr,
                                       lineal, dinamic))
         N += 1
     return (brch_array, 0)
@@ -856,16 +856,16 @@ def solve_orders(T, U, orders, branch_list, nd_list, el_num, Aa, filenameDC,
                                   b, n)
 
         elif orderID == ".DC":
-            solveDC(order, b, n, cirLineal)
+            solveDC(order, b, n, cirLineal, filenameDC, U, branch_list, T, A)
 
         elif orderID == ".TR":
-            solveTR(order, b, n, cirLineal, branch_list, filenameTR, A)
+            solveTR(order, b, n, cirLineal, branch_list, filenameTR, A, T)
 
         elif orderID == ".PR":
             print_cir_info(nd_list, el_num, branch_list, Aa)
 
 
-def solveDC(order, b, n, cirLineal):
+def solveDC(order, b, n, cirLineal, filenameDC, U, branch_list, T, A):
     with open(filenameDC, 'w') as file:
         header = p2.build_csv_header(np.str_.upper(order[8][0]), b, n)
         print(header, file=file)
@@ -877,14 +877,16 @@ def solveDC(order, b, n, cirLineal):
             # TODO EGUNERATU
             Ui = U
             index_name = order[8]
-            index = get_branch_by_name(index_name, branch_list).N
+            changeableBranch = get_branch_by_name(index_name, branch_list)
+            changeableBranch.insert_DC_value(currentValue)
+            index = changeableBranch.N
             Ui[len(Ui) - len(branch_list) + index] = currentValue
             if cirLineal:
                 solution = np.append(np.array([currentValue]),
                                      np.linalg.solve(T, Ui))
             else:
                 solution = np.append(np.array([currentValue]),
-                                     solveNonLinealOP(b, n, t=currentValue,
+                                     solveNonLinealOP(b, n, T=T, U=Ui,
                                                       branch_list=branch_list,
                                                       A=A))
             sol_csv = ','.join(['%.5f' % num for num in solution])
@@ -892,7 +894,7 @@ def solveDC(order, b, n, cirLineal):
             currentValue += step
 
 
-def solveTR(order, b, n, cirLineal, branch_list, filenameTR, A):
+def solveTR(order, b, n, cirLineal, branch_list, filenameTR, A, T):
     cirDinamic = False
     for branch in branch_list:
         if branch.dinamic:
@@ -975,7 +977,7 @@ def solveNonLinealOP(b, n, T, U, branch_list, A, t=0):
     Ui = U
     currentSol = np.linalg.solve(Ti, Ui)
     iteration = 1
-    max_iteration = 100
+    max_iteration = 1000
     while True:
         for index in nonLinealIndex:
             nonLinealVoltages[index] = currentSol[index+n-1]
@@ -1044,7 +1046,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         filename = sys.argv[1]
     else:
-        filename = "../cirs/all/3_zlel_arteztailea.cir"
+        filename = "../cirs/all/2_zlel_Q_ezaugarri.cir"
 
     # Parse the circuit
     [cir_el, cir_nd, cir_val, cir_ctr, orders] = cir_parser(filename)
@@ -1075,6 +1077,6 @@ if __name__ == "__main__":
 
     # solve orders
     solve_orders(T, U, orders, branch_list, nd_list, el_num, Aa, filenameDC,
-                 filenameTR)
+                 filenameTR, A)
 
     p2.plot_from_cvs(filenameTR, "t", "v4", "wololo")
