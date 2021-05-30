@@ -9,7 +9,7 @@
 
 """
 
-import zlel.zlel_p1 as zl1
+import zlel.zlel_p1_pello as zl1
 import zlel.zlel_p2 as zl2
 import sys
 

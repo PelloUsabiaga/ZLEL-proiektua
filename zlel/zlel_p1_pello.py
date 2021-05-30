@@ -342,8 +342,7 @@ class branch:
         else:
             return self.outcoming_node
 
-    def get_M_row(self, branch_list, Vi=0.6, Vce=0.6, dinVal=0, h=1):
-
+    def get_M_row(self, branch_list, Vi=0.6, vbe=0.6, vbc=0.6, dinVal=0, h=1):
         row = np.zeros(len(branch_list))
 
         if self.name[0] == "R":
@@ -379,15 +378,14 @@ class branch:
 
         elif self.name[0] == "Q":
             # BE branch
-            vbe = Vi
             if self.name[-1] == "E":
-                row[self.N] = self.transistorValues(vbe, Vce)[0]
-                row[self.N + 1] = self.transistorValues(vbe, Vce)[1]
+                row[self.N] = self.transistorValues(vbe, vbc)[0]
+                row[self.N + 1] = self.transistorValues(vbe, vbc)[1]
 
                 # BC branch
             elif self.name[-1] == "C":
-                row[self.N - 1] = self.transistorValues(vbe, Vce)[2]
-                row[self.N] = self.transistorValues(vbe, Vce)[3]
+                row[self.N - 1] = self.transistorValues(vbe, vbc)[2]
+                row[self.N] = self.transistorValues(vbe, vbc)[3]
 
         elif self.name[0] == "C":
             row[self.N] = 1
@@ -448,7 +446,6 @@ class branch:
         return row
 
     def get_Us_row(self, t, Vi=0.6, Vbc=0.6, dinVal=0, h=1):
-        print("get_Us_row")
         row = np.zeros(1)
         if self.name[0] == "R":
             pass
@@ -521,8 +518,10 @@ class branch:
         G22 = -(Ics/Vt) * math.exp(vbc / Vt)
         G12 = -alphaR * G22
         G21 = -alphaF * G11
-        Ie = G11*vbe + G12 * vbc + Ies * (math.exp(vbe/Vt) - 1) - alphaR * Ics * (math.exp(vbc/Vt) - 1)
-        Ic = G21 * vbe + G22 * vbc - alphaF * Ies * (math.exp(vbe/Vt) - 1) + Ics * (math.exp(vbc/Vt) - 1)
+        Ie = (G11*vbe + G12 * vbc + Ies * (math.exp(vbe/Vt) - 1)
+              - alphaR * Ics * (math.exp(vbc/Vt) - 1))
+        Ic = (G21 * vbe + G22 * vbc - alphaF * Ies * (math.exp(vbe/Vt) - 1)
+              + Ics * (math.exp(vbc/Vt) - 1))
         return (G11, G12, G21, G22, Ie, Ic)
 
 
@@ -560,9 +559,9 @@ def get_M_matrix(branch_list, nonLinealVoltages="kaixo",
             else:
                 if branch_list[i].name[0] == "Q":
                     if branch_list[i].name[-1] == "E":
-                        matrix[i] = branch_list[i].get_M_row(branch_list, nonLinealVoltages[i], nonLinealVoltages[i+1])
+                        matrix[i] = branch_list[i].get_M_row(branch_list, vbe=nonLinealVoltages[i], vbc=nonLinealVoltages[i+1])
                     elif branch_list[i].name[-1] == "C":
-                        matrix[i] = branch_list[i].get_M_row(branch_list, nonLinealVoltages[i-1], nonLinealVoltages[i])
+                        matrix[i] = branch_list[i].get_M_row(branch_list, vbe=nonLinealVoltages[i-1], vbc=nonLinealVoltages[i])
                 elif branch_list[i].name[0] == "D":
                     matrix[i] = branch_list[i].get_M_row(branch_list, nonLinealVoltages[i])
 
@@ -574,9 +573,9 @@ def get_M_matrix(branch_list, nonLinealVoltages="kaixo",
             else:
                 if branch_list[i].name[0] == "Q":
                     if branch_list[i].name[-1] == "E":
-                        matrix[i] = branch_list[i].get_M_row(branch_list, nonLinealVoltages[i], nonLinealVoltages[i+1])
+                        matrix[i] = branch_list[i].get_M_row(branch_list, vbe=nonLinealVoltages[i], vbc=nonLinealVoltages[i+1])
                     elif branch_list[i].name[-1] == "C":
-                        matrix[i] = branch_list[i].get_M_row(branch_list, nonLinealVoltages[i-1], nonLinealVoltages[i])
+                        matrix[i] = branch_list[i].get_M_row(branch_list, vbe=nonLinealVoltages[i-1], vbc=nonLinealVoltages[i])
                 elif branch_list[i].name[0] == "D":
                     matrix[i] = branch_list[i].get_M_row(branch_list, nonLinealVoltages[i])
                 if branch_list[i].name[0] == "C" or branch_list[i].name[0] == "L":
@@ -655,11 +654,9 @@ def get_Us_matrix(branch_list, t=0, nonLinealVoltages="kaixo",
                 matrix[i] = branch_list[i].get_Us_row(t)
             else:
                 if branch_list[i].name[0] == "Q":
-
                     if branch_list[i].name[-1] == "E":
                         matrix[i] = branch_list[i].get_Us_row(t, nonLinealVoltages[i], nonLinealVoltages[i+1])
                     elif branch_list[i].name[-1] == "C":
-
                         matrix[i] = branch_list[i].get_Us_row(t, nonLinealVoltages[i-1], nonLinealVoltages[i])
                 elif branch_list[i].name[0] == "D":
                     matrix[i] = branch_list[i].get_Us_row(t, nonLinealVoltages[i])
@@ -810,7 +807,7 @@ def print_cir_info(nd_list, el_num, branch_list, Aa):
 
     print(str(el_num) + " Elements")
     print(str(len(nd_list)) + " Different nodes: " + str(nd_list))
-    print("\n" + str(len(branch_list) - int(nonLinealN/2)) + " Branches:")
+    print("\n" + str(len(branch_list)) + " Branches:")
     for branch in branch_list:
         print(branch, end="")
     b = len(branch_list)

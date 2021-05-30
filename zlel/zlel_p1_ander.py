@@ -8,7 +8,6 @@
 
 
 """
-
 import numpy as np
 import sys
 if __name__ == "__main__":
@@ -398,6 +397,7 @@ class branch:
         return row
 
     def get_N_row(self, branch_list, Vi=0.6, dinVal=0, h=1):
+        print("get_N_row")
         row = np.zeros(len(branch_list))
 
         if self.name[0] == "R":
@@ -433,10 +433,12 @@ class branch:
         elif self.name[0] == "Q":
             # BE branch
             if self.name[-1] == "E":
+                ##row[self.N] = self.transistorValues()[6]
                 row[self.N] = 1
 
                 # BC branch
             elif self.name[-1] == "C":
+                #row[self.N] = self.transistorValues()[7]
                 row[self.N] = 1
 
         elif self.name[0] == "C":
@@ -657,6 +659,11 @@ def get_Us_matrix(branch_list, t=0, nonLinealVoltages="kaixo",
                 if branch_list[i].name[0] == "Q":
 
                     if branch_list[i].name[-1] == "E":
+                        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+                        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+                        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+                        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+                        print((nonLinealVoltages[i], nonLinealVoltages[i + 1]))
                         matrix[i] = branch_list[i].get_Us_row(t, nonLinealVoltages[i], nonLinealVoltages[i+1])
                     elif branch_list[i].name[-1] == "C":
 
@@ -979,8 +986,7 @@ def solveNonLinealOP(b, n, T, U, branch_list, A, t=0):
     Ui = U
     currentSol = np.linalg.solve(Ti, Ui)
     iteration = 1
-    max_iteration = 10000
-    print(currentSol)
+    max_iteration = 1000
     while True:
         for index in nonLinealIndex:
             nonLinealVoltages[index] = currentSol[index+n-1]
