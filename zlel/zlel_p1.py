@@ -389,7 +389,7 @@ class branch:
             row[self.N] = 1
 
         elif self.name[0] == "L":
-            row[self.N] = -h/self.value[0]
+            row[self.N] = -1*h/self.value[0]
 
         return row
 
@@ -908,10 +908,12 @@ def solveTR(order, b, n, cirLineal, branch_list, filenameTR, A):
         h = h.astype(np.float)
         dinamicValues = np.zeros(b)
         dinamicIndex = []
+        dinamicNames = []
         for branch in branch_list:
             if branch.dinamic:
                 # initial V value for NR
                 dinamicIndex.append(branch.N)
+                dinamicNames.append(branch.name)
                 dinamicValues[branch.N] = branch.value[1]
             else:
                 dinamicValues[branch.N] = None
@@ -935,8 +937,11 @@ def solveTR(order, b, n, cirLineal, branch_list, filenameTR, A):
                                                           t=currentValue,
                                                           branch_list=branch_list,
                                                           A=A))
-                for index in dinamicIndex:
-                    dinamicValues[index] = solution[index+n]
+                for index, name in zip(dinamicIndex, dinamicNames):
+                    if name[0] == "C":
+                        dinamicValues[index] = solution[index+n] ##problema!!
+                    if name[0] == "L":
+                        dinamicValues[index] = solution[index+n+b]
             else:
                 Usi = get_Us_matrix(branch_list, currentValue)
                 Ui = get_U_matrix(A, Usi)
@@ -952,6 +957,9 @@ def solveTR(order, b, n, cirLineal, branch_list, filenameTR, A):
             sol_csv = ','.join(['%.5f' % num for num in solution])
             print(sol_csv, file=file)
             currentValue += step
+        print(solution)
+        print(dinamicIndex)
+        print(n)
 
 
 def solveNonLinealOP(b, n, T, U, branch_list, A, t=0):
