@@ -26,4 +26,4 @@ if __name__ == "__main__":
     zl1.solveCircuit(filename)
     filenameTR = filename[:-3] + "tr"
     filenameDC = filename[:-3] + "dc"
-    zl2.plot_from_cvs(filenameDC, "V", "v1", "wololo")
+    zl2.plot_from_cvs(filenameDC, "V", "i3", "wololo")
