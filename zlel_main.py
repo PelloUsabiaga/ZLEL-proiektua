@@ -10,6 +10,7 @@
 """
 
 import zlel.zlel_p1 as zl1
+import zlel.zlel_p2 as zl2
 import sys
 
 """
@@ -24,3 +25,4 @@ if __name__ == "__main__":
         filename = "cirs/all/3_zlel_RL.cir"
     zl1.solveCircuit(filename)
     filenameTR = filename[:-3] + "tr"
+    zl2.plot_from_cvs(filenameTR, "t", "i3", "wololo")

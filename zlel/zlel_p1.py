@@ -957,9 +957,6 @@ def solveTR(order, b, n, cirLineal, branch_list, filenameTR, A):
             sol_csv = ','.join(['%.5f' % num for num in solution])
             print(sol_csv, file=file)
             currentValue += step
-        print(solution)
-        print(dinamicIndex)
-        print(n)
 
 
 def solveNonLinealOP(b, n, T, U, branch_list, A, t=0):
