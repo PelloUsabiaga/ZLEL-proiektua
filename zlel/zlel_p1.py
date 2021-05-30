@@ -11,7 +11,10 @@
 
 import numpy as np
 import sys
-import zlel.zlel_p2 as p2
+if __name__ == "__main__":
+    import zlel_p2 as p2
+else:
+    import zlel.zlel_p2 as p2
 import math
 
 
@@ -296,8 +299,10 @@ class branch:
     printName = None
     lineal = None
     printN = None
+    dinamic = None
 
-    def __init__(self, name, nd, N, printN, value, control, lineal=True):
+    def __init__(self, name, nd, N, printN, value, control, lineal=True,
+                 dinamic=False):
         self.name = name.upper()
         self.printName = name
         self.outcoming_node = nd[0]
@@ -307,6 +312,7 @@ class branch:
         self.control = control
         self.lineal = lineal
         self.printN = printN
+        self.dinamic = dinamic
         for i in range(len(control)):
             control[i] = control[i].upper()
 
@@ -333,7 +339,7 @@ class branch:
         else:
             return self.outcoming_node
 
-    def get_M_row(self, branch_list, Vi=0.6, Vce=0.6):
+    def get_M_row(self, branch_list, Vi=0.6, Vce=0.6, dinVal=0, h=1):
         row = np.zeros(len(branch_list))
 
         if self.name[0] == "R":
@@ -379,9 +385,15 @@ class branch:
                 row[self.N - 1] = self.transistorValues(vbe, Vce)[2]
                 row[self.N] = self.transistorValues(vbe, Vce)[3]
 
+        elif self.name[0] == "C":
+            row[self.N] = 1
+
+        elif self.name[0] == "L":
+            row[self.N] = -h/self.value[0]
+
         return row
 
-    def get_N_row(self, branch_list, Vi=0.6):
+    def get_N_row(self, branch_list, Vi=0.6, dinVal=0, h=1):
         row = np.zeros(len(branch_list))
 
         if self.name[0] == "R":
@@ -423,9 +435,15 @@ class branch:
             elif self.name[-1] == "C":
                 row[self.N] = 1
 
+        elif self.name[0] == "C":
+            row[self.N] = -1*h/self.value[0]
+
+        elif self.name[0] == "L":
+            row[self.N] = 1
+
         return row
 
-    def get_Us_row(self, t, Vi=0.6, Vbc=0.6):
+    def get_Us_row(self, t, Vi=0.6, Vbc=0.6, dinVal=0, h=1):
         row = np.zeros(1)
         if self.name[0] == "R":
             pass
@@ -454,7 +472,6 @@ class branch:
         elif self.name[0] == "D":
             row[0] = self.diodValues(Vi)[1]
 
-        
         elif self.name[0] == "Q":
             Vbe = Vi
             if self.name[-1] == "E":
@@ -464,6 +481,11 @@ class branch:
             elif self.name[-1] == "C":
                 row[0] = self.transistorValues(Vbe, Vbc)[5]
 
+        elif self.name[0] == "C":
+            row[0] = dinVal
+
+        elif self.name[0] == "L":
+            row[0] = dinVal
 
         return row
 
@@ -481,20 +503,26 @@ class branch:
         if self.name[0] != "Q":
             sys.exit("diod function was called by not diod element")
             raise(ValueError)
+        # if self.control[0] == 1:
+        #     vbe = -1*vbe
+        #     vbc = -1*vbc
         Vt = 8.6173324e-5 * 300
         Ies = self.value[0]
         Ics = self.value[1]
         B = self.value[2]
         alphaF = B / (1 + B)
         alphaR = (Ies / Ics) * alphaF
+        print(vbe)
         G11 = -(Ies/Vt) * math.exp(vbe / Vt)
         G22 = -(Ics/Vt) * math.exp(vbc / Vt)
         G12 = -alphaR * G22
         G21 = -alphaF * G11
-        Ie = G11*vbe + G12*vbc + Ies * (math.exp(vbe/Vt) - 1)
+        Ie = G11*vbe + G12 * vbc + Ies * (math.exp(vbe/Vt) - 1)
         - alphaR * Ics * (math.exp(vbc/Vt) - 1)
-        Ic = G21*vbe + G22* vbc - alphaF * Ies * (math.exp(vbe/Vt) - 1)
+        Ic = G21 * vbe + G22 * vbc - alphaF * Ies * (math.exp(vbe/Vt) - 1)
         + Ics * (math.exp(vbc/Vt) - 1)
+        print("wololo")
+        print(G11, G12, G21, G22, Ie, Ic)
         return (G11, G12, G21, G22, Ie, Ic)
 
 
@@ -508,12 +536,24 @@ def get_branch_by_name(brch_name, branch_list):
             return branch
 
 
-def get_M_matrix(branch_list, nonLinealVoltages="kaixo"):
+def get_M_matrix(branch_list, nonLinealVoltages="kaixo",
+                 dinamicValues="kaixo", h=0):
     matrix = np.zeros([len(branch_list), len(branch_list)])
-    if type(nonLinealVoltages) == str:
+    if type(nonLinealVoltages) == str and type(dinamicValues) == str:
+       # circuit is resistive and lineal
         for i in range(len(branch_list)):
             matrix[i] = branch_list[i].get_M_row(branch_list)
-    else:
+    elif type(nonLinealVoltages) == str:
+        # circuit is dinamic and lineal
+        for i in range(len(branch_list)):
+            if math.isnan(dinamicValues[i]):
+                matrix[i] = branch_list[i].get_M_row(branch_list)
+            else:
+                if branch_list[i].name[0] == "C" or branch_list[i].name[0] == "L":
+                    matrix[i] = branch_list[i].get_M_row(branch_list, dinVal=dinamicValues[i], h=h)
+                    
+    elif type(dinamicValues) == str:
+        # circuit is resistive and non lineal
         for i in range(len(branch_list)):
             if math.isnan(nonLinealVoltages[i]):
                 matrix[i] = branch_list[i].get_M_row(branch_list)
@@ -523,31 +563,93 @@ def get_M_matrix(branch_list, nonLinealVoltages="kaixo"):
                         matrix[i] = branch_list[i].get_M_row(branch_list, nonLinealVoltages[i], nonLinealVoltages[i+1])
                     elif branch_list[i].name[-1] == "C":
                         matrix[i] = branch_list[i].get_M_row(branch_list, nonLinealVoltages[i-1], nonLinealVoltages[i])
-                else:
+                elif branch_list[i].name[0] == "D":
                     matrix[i] = branch_list[i].get_M_row(branch_list, nonLinealVoltages[i])
+
+    else:
+        # circuit is dinamic and non lineal
+        for i in range(len(branch_list)):
+            if math.isnan(nonLinealVoltages[i]) and math.isnan(dinamicValues[i]):
+                matrix[i] = branch_list[i].get_M_row(branch_list)
+            else:
+                if branch_list[i].name[0] == "Q":
+                    if branch_list[i].name[-1] == "E":
+                        matrix[i] = branch_list[i].get_M_row(branch_list, nonLinealVoltages[i], nonLinealVoltages[i+1])
+                    elif branch_list[i].name[-1] == "C":
+                        matrix[i] = branch_list[i].get_M_row(branch_list, nonLinealVoltages[i-1], nonLinealVoltages[i])
+                elif branch_list[i].name[0] == "D":
+                    matrix[i] = branch_list[i].get_M_row(branch_list, nonLinealVoltages[i])
+                if branch_list[i].name[0] == "C" or branch_list[i].name[0] == "L":
+                    matrix[i] = branch_list[i].get_M_row(branch_list, dinVal=dinamicValues[i], h=h)
     return matrix
 
 
-def get_N_matrix(branch_list, nonLinealVoltages="kaixo"):
+def get_N_matrix(branch_list, nonLinealVoltages="kaixo",
+                 dinamicValues="kaixo", h=0):
     matrix = np.zeros([len(branch_list), len(branch_list)])
-    if type(nonLinealVoltages) == str:
+    if type(nonLinealVoltages) == str and type(dinamicValues) == str:
+       # circuit is resistive and lineal
         for i in range(len(branch_list)):
             matrix[i] = branch_list[i].get_N_row(branch_list)
-    else:
+    elif type(nonLinealVoltages) == str:
+        # circuit is dinamic and lineal
+        for i in range(len(branch_list)):
+            if math.isnan(dinamicValues[i]):
+                matrix[i] = branch_list[i].get_N_row(branch_list)
+            else:
+                if branch_list[i].name[0] == "C" or branch_list[i].name[0] == "L":
+                    matrix[i] = branch_list[i].get_N_row(branch_list, dinVal=dinamicValues[i], h=h)
+                    
+    elif type(dinamicValues) == str:
+        # circuit is resistive and non lineal
         for i in range(len(branch_list)):
             if math.isnan(nonLinealVoltages[i]):
                 matrix[i] = branch_list[i].get_N_row(branch_list)
             else:
-                matrix[i] = branch_list[i].get_N_row(branch_list, nonLinealVoltages[i])
+                if branch_list[i].name[0] == "Q":
+                    if branch_list[i].name[-1] == "E":
+                        matrix[i] = branch_list[i].get_N_row(branch_list)
+                    elif branch_list[i].name[-1] == "C":
+                        matrix[i] = branch_list[i].get_N_row(branch_list)
+                elif branch_list[i].name[0] == "D":
+                    matrix[i] = branch_list[i].get_N_row(branch_list, nonLinealVoltages[i])
+
+    else:
+        # circuit is dinamic and non lineal
+        for i in range(len(branch_list)):
+            if math.isnan(nonLinealVoltages[i]) and math.isnan(dinamicValues[i]):
+                matrix[i] = branch_list[i].get_N_row(branch_list)
+            else:
+                if branch_list[i].name[0] == "Q":
+                    if branch_list[i].name[-1] == "E":
+                        matrix[i] = branch_list[i].get_N_row(branch_list)
+                    elif branch_list[i].name[-1] == "C":
+                        matrix[i] = branch_list[i].get_N_row(branch_list)
+                elif branch_list[i].name[0] == "D":
+                    matrix[i] = branch_list[i].get_N_row(branch_list, nonLinealVoltages[i])
+                if branch_list[i].name[0] == "C" or branch_list[i].name[0] == "L":
+                    matrix[i] = branch_list[i].get_N_row(branch_list, dinVal=dinamicValues[i], h=h)
     return matrix
 
 
-def get_Us_matrix(branch_list, t=0, nonLinealVoltages="kaixo"):
+def get_Us_matrix(branch_list, t=0, nonLinealVoltages="kaixo",
+                  dinamicValues="kaixo", h=0):
     matrix = np.zeros([len(branch_list), 1])
-    if type(nonLinealVoltages) == str:
+    if type(nonLinealVoltages) == str and type(dinamicValues) == str:
+       # circuit is resistive and lineal
         for i in range(len(branch_list)):
             matrix[i] = branch_list[i].get_Us_row(t)
-    else:
+    elif type(nonLinealVoltages) == str:
+        # circuit is dinamic and lineal
+        for i in range(len(branch_list)):
+            if math.isnan(dinamicValues[i]):
+                matrix[i] = branch_list[i].get_Us_row(t)
+            else:
+                if branch_list[i].name[0] == "C" or branch_list[i].name[0] == "L":
+                    matrix[i] = branch_list[i].get_Us_row(t, dinVal=dinamicValues[i], h=h)
+                    
+    elif type(dinamicValues) == str:
+        # circuit is resistive and non lineal
         for i in range(len(branch_list)):
             if math.isnan(nonLinealVoltages[i]):
                 matrix[i] = branch_list[i].get_Us_row(t)
@@ -557,8 +659,24 @@ def get_Us_matrix(branch_list, t=0, nonLinealVoltages="kaixo"):
                         matrix[i] = branch_list[i].get_Us_row(t, nonLinealVoltages[i], nonLinealVoltages[i+1])
                     elif branch_list[i].name[-1] == "C":
                         matrix[i] = branch_list[i].get_Us_row(t, nonLinealVoltages[i-1], nonLinealVoltages[i])
-                else:
+                elif branch_list[i].name[0] == "D":
                     matrix[i] = branch_list[i].get_Us_row(t, nonLinealVoltages[i])
+
+    else:
+        # circuit is dinamic and non lineal
+        for i in range(len(branch_list)):
+            if math.isnan(nonLinealVoltages[i]) and math.isnan(dinamicValues[i]):
+                matrix[i] = branch_list[i].get_Us_row(t)
+            else:
+                if branch_list[i].name[0] == "Q":
+                    if branch_list[i].name[-1] == "E":
+                        matrix[i] = branch_list[i].get_Us_row(t, nonLinealVoltages[i], nonLinealVoltages[i+1])
+                    elif branch_list[i].name[-1] == "C":
+                        matrix[i] = branch_list[i].get_Us_row(t, nonLinealVoltages[i-1], nonLinealVoltages[i])
+                elif branch_list[i].name[0] == "D":
+                    matrix[i] = branch_list[i].get_Us_row(t, nonLinealVoltages[i])
+                if branch_list[i].name[0] == "C" or branch_list[i].name[0] == "L":
+                    matrix[i] = branch_list[i].get_Us_row(t, dinVal=dinamicValues[i], h=h)
     return matrix
 
 
@@ -614,19 +732,25 @@ def get_el_branches(name, nd, N, val, ctr, nonLinealBranchN):
                     "H": ((0, 1, ""),),
                     "F": ((0, 1, ""),),
                     "B": ((0, 1, ""),),
-                    "Y": ((0, 1, ""),)}
+                    "Y": ((0, 1, ""),),
+                    "C": ((0, 1, ""),),
+                    "L": ((0, 1, ""),)}
 
     nonLineals = {"D", "Q"}
+    dinamics = ["C", "L"]
     lineal = True
     if name[0][0].upper() in nonLineals:
         lineal = False
+    dinamic = False
+    if name[0][0].upper() in dinamics:
+        dinamic = True
     brch_array = np.array([])
     for brch_tpl in el_to_branch[name[0][0].upper()]:
         brch_array = np.append(brch_array,
                                branch(name[0]+brch_tpl[2],
                                       [nd[brch_tpl[0]], nd[brch_tpl[1]]],
                                       N, N - nonLinealBranchN, val, ctr,
-                                      lineal))
+                                      lineal, dinamic))
         N += 1
     return (brch_array, 0)
 
@@ -712,7 +836,8 @@ def print_MNUs(M, N, Us):
     print(Us)
 
 
-def solve_orders(T, U, orders, branch_list, nd_list, el_num, Aa):
+def solve_orders(T, U, orders, branch_list, nd_list, el_num, Aa, filenameDC,
+                 filenameTR, A):
     b = len(branch_list)
     n = len(nd_list)
     cirLineal = True
@@ -725,23 +850,26 @@ def solve_orders(T, U, orders, branch_list, nd_list, el_num, Aa):
             if cirLineal:
                 p2.print_solution(np.linalg.solve(T, U), b, n)
             else:
-                solveNonLinealOP(b, n)
+                p2.print_solution(solveNonLinealOP(b, n, T=T, U=U,
+                                                   branch_list=branch_list,
+                                                   A=A),
+                                  b, n)
 
         elif orderID == ".DC":
-            solveDC(order, b, n)
+            solveDC(order, b, n, cirLineal)
 
         elif orderID == ".TR":
-            solveTR(order, b, n)
+            solveTR(order, b, n, cirLineal, branch_list, filenameTR, A)
 
         elif orderID == ".PR":
             print_cir_info(nd_list, el_num, branch_list, Aa)
 
 
-def solveDC(order, b, n):
+def solveDC(order, b, n, cirLineal):
     with open(filenameDC, 'w') as file:
         header = p2.build_csv_header(np.str_.upper(order[8][0]), b, n)
         print(header, file=file)
-        values = order[5:8].astype(float)
+        values = order[5:8].astype(np.float)
         currentValue = values[0]
         step = values[2]
         finalValue = values[1]
@@ -751,14 +879,24 @@ def solveDC(order, b, n):
             index_name = order[8]
             index = get_branch_by_name(index_name, branch_list).N
             Ui[len(Ui) - len(branch_list) + index] = currentValue
-            solution = np.append(np.array([currentValue]),
-                                 np.linalg.solve(T, Ui))
+            if cirLineal:
+                solution = np.append(np.array([currentValue]),
+                                     np.linalg.solve(T, Ui))
+            else:
+                solution = np.append(np.array([currentValue]),
+                                     solveNonLinealOP(b, n, t=currentValue,
+                                                      branch_list=branch_list,
+                                                      A=A))
             sol_csv = ','.join(['%.5f' % num for num in solution])
             print(sol_csv, file=file)
             currentValue += step
 
 
-def solveTR(order, b, n):
+def solveTR(order, b, n, cirLineal, branch_list, filenameTR, A):
+    cirDinamic = False
+    for branch in branch_list:
+        if branch.dinamic:
+            cirDinamic = True
     with open(filenameTR, 'w') as file:
         header = p2.build_csv_header("t", b, n)
         print(header, file=file)
@@ -766,18 +904,57 @@ def solveTR(order, b, n):
         currentValue = values[0]
         step = values[2]
         finalValue = values[1]
+        h = order[7]
+        h = h.astype(np.float)
+        dinamicValues = np.zeros(b)
+        dinamicIndex = []
+        for branch in branch_list:
+            if branch.dinamic:
+                # initial V value for NR
+                dinamicIndex.append(branch.N)
+                dinamicValues[branch.N] = branch.value[1]
+            else:
+                dinamicValues[branch.N] = None
         while currentValue <= finalValue:
             # TODO EGUNERATU
-            Usi = get_Us_matrix(branch_list, currentValue)
-            Ui = get_U_matrix(A, Usi)
-            solution = np.append(np.array([currentValue]),
-                                 np.linalg.solve(T, Ui))
+            if cirDinamic:
+                Mi = get_M_matrix(branch_list, dinamicValues=dinamicValues,
+                                  h=h)
+                Ni = get_N_matrix(branch_list, dinamicValues=dinamicValues,
+                                  h=h)
+                Usi = get_Us_matrix(branch_list, currentValue,
+                                    dinamicValues=dinamicValues, h=h)
+                Ti = get_T_matrix(Mi, Ni, A)
+                Ui = get_U_matrix(A, Usi)
+                if cirLineal:
+                    solution = np.append(np.array([currentValue]),
+                                         np.linalg.solve(Ti, Ui))
+                else:
+                    solution = np.append(np.array([currentValue]),
+                                         solveNonLinealOP(b, n, T=Ti, U=Ui,
+                                                          t=currentValue,
+                                                          branch_list=branch_list,
+                                                          A=A))
+                for index in dinamicIndex:
+                    dinamicValues[index] = solution[index+n]
+            else:
+                Usi = get_Us_matrix(branch_list, currentValue)
+                Ui = get_U_matrix(A, Usi)
+                if cirLineal:
+                    solution = np.append(np.array([currentValue]),
+                                         np.linalg.solve(T, Ui))
+                else:
+                    solution = np.append(np.array([currentValue]),
+                                         solveNonLinealOP(b, n, T=T, U=Ui,
+                                                          t=currentValue,
+                                                          branch_list=branch_list,
+                                                          A=A))
             sol_csv = ','.join(['%.5f' % num for num in solution])
             print(sol_csv, file=file)
             currentValue += step
 
 
-def solveNonLinealOP(b, n):
+def solveNonLinealOP(b, n, T, U, branch_list, A, t=0):
     nonLinealVoltages = np.zeros(b)
     nonLinealIndex = []
     for branch in branch_list:
@@ -789,9 +966,9 @@ def solveNonLinealOP(b, n):
             nonLinealVoltages[branch.N] = None
     # NR maximun error
     e = 1e-5
-    currentT = T
-    currentU = U
-    currentSol = np.linalg.solve(currentT, currentU)
+    Ti = T
+    Ui = U
+    currentSol = np.linalg.solve(Ti, Ui)
     iteration = 1
     max_iteration = 100
     while True:
@@ -800,7 +977,8 @@ def solveNonLinealOP(b, n):
 
         Mi = get_M_matrix(branch_list, nonLinealVoltages)
         Ni = get_N_matrix(branch_list, nonLinealVoltages)
-        Usi = get_Us_matrix(branch_list, nonLinealVoltages=nonLinealVoltages)
+        Usi = get_Us_matrix(branch_list,
+                            nonLinealVoltages=nonLinealVoltages, t=t)
         Ti = get_T_matrix(Mi, Ni, A)
         Ui = get_U_matrix(A, Usi)
         prevSol = currentSol
@@ -812,12 +990,43 @@ def solveNonLinealOP(b, n):
                 correct = False
         iteration += 1
         if correct:
-            p2.print_solution(currentSol, b, n)
+            return currentSol
             break
         elif iteration > max_iteration:
             print("todo mal")
-            break
 
+
+def solveCircuit(filename):
+    # Parse the circuit
+    [cir_el, cir_nd, cir_val, cir_ctr, orders] = cir_parser(filename)
+
+    # Get nodes list
+    nd_list = get_nd_list(cir_nd)
+
+    # get element quantity
+    el_num = get_element_N(cir_el)
+
+    # get branchs list
+    branch_list = get_branches(cir_el, cir_nd, cir_val, cir_ctr)
+
+    # get Aa and A
+    Aa = get_Aa(nd_list, branch_list)
+    A = get_A(Aa)
+
+    # get M N Us T and U arrays
+    M = get_M_matrix(branch_list)
+    N = get_N_matrix(branch_list)
+    Us = get_Us_matrix(branch_list)
+    T = get_T_matrix(M, N, A)
+    U = get_U_matrix(A, Us)
+
+    # for .DC and .TR
+    filenameDC = filename[:-3] + "dc"
+    filenameTR = filename[:-3] + "tr"
+
+    # solve orders
+    solve_orders(T, U, orders, branch_list, nd_list, el_num, Aa, filenameDC,
+                 filenameTR, A)
 
 """
 https://stackoverflow.com/questions/419163/what-does-if-name-main-do
@@ -830,7 +1039,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         filename = sys.argv[1]
     else:
-        filename = "../cirs/all/2_zlel_Q_ezaugarri.cir"
+        filename = "../cirs/all/3_zlel_arteztailea.cir"
 
     # Parse the circuit
     [cir_el, cir_nd, cir_val, cir_ctr, orders] = cir_parser(filename)
@@ -860,4 +1069,7 @@ if __name__ == "__main__":
     filenameTR = filename[:-3] + "tr"
 
     # solve orders
-    solve_orders(T, U, orders, branch_list, nd_list, el_num, Aa)
+    solve_orders(T, U, orders, branch_list, nd_list, el_num, Aa, filenameDC,
+                 filenameTR)
+
+    p2.plot_from_cvs(filenameTR, "t", "v4", "wololo")

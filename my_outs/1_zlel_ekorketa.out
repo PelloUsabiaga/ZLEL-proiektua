@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "zlel_main.py", line 25, in <module>
+    zl1.solveCircuit(filename)
+  File "D:\Documentos\Github\ZLEL proiektua\zlel\zlel_p1.py", line 1028, in solveCircuit
+    solve_orders(T, U, orders, branch_list, nd_list, el_num, Aa, filenameDC,
+  File "D:\Documentos\Github\ZLEL proiektua\zlel\zlel_p1.py", line 859, in solve_orders
+    solveDC(order, b, n, cirLineal)
+  File "D:\Documentos\Github\ZLEL proiektua\zlel\zlel_p1.py", line 869, in solveDC
+    with open(filenameDC, 'w') as file:
+NameError: name 'filenameDC' is not defined

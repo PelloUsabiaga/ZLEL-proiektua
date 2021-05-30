@@ -1,0 +1,40 @@
+
+========== Nodes voltage to reference ========
+e1 =  [ 3.]
+e2 =  [ 2.54545455]
+e3 =  [ 2.34545455]
+e4 =  [ 7.09090909]
+e5 =  [-18.18181818]
+
+========== Branches voltage difference ========
+v1 =  [-0.45454545]
+v2 =  [-2.54545455]
+v3 =  [ 3.]
+v4 =  [ 0.2]
+v5 =  [-2.34545455]
+v6 =  [-4.54545455]
+v7 =  [ 25.27272727]
+v8 =  [-18.18181818]
+
+=============== Branches currents ==============
+i1 =  [-0.00045455]
+i2 =  [-0.00127273]
+i3 =  [-0.00045455]
+i4 =  [ 0.001]
+i5 =  [-0.001]
+i6 =  [-0.00181818]
+i7 =  [-0.00181818]
+i8 =  [-0.00181818]
+
+================= End solution =================
+
+Traceback (most recent call last):
+  File "zlel_main.py", line 25, in <module>
+    zl1.solveCircuit(filename)
+  File "D:\Documentos\Github\ZLEL proiektua\zlel\zlel_p1.py", line 1028, in solveCircuit
+    solve_orders(T, U, orders, branch_list, nd_list, el_num, Aa, filenameDC,
+  File "D:\Documentos\Github\ZLEL proiektua\zlel\zlel_p1.py", line 859, in solve_orders
+    solveDC(order, b, n, cirLineal)
+  File "D:\Documentos\Github\ZLEL proiektua\zlel\zlel_p1.py", line 869, in solveDC
+    with open(filenameDC, 'w') as file:
+NameError: name 'filenameDC' is not defined
