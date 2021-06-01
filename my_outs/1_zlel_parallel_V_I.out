@@ -1,13 +1,1 @@
-Traceback (most recent call last):
-  File "zlel_main.py", line 25, in <module>
-    zl1.solveCircuit(filename)
-  File "D:\Documentos\Github\ZLEL proiektua\zlel\zlel_p1.py", line 1028, in solveCircuit
-    solve_orders(T, U, orders, branch_list, nd_list, el_num, Aa, filenameDC,
-  File "D:\Documentos\Github\ZLEL proiektua\zlel\zlel_p1.py", line 851, in solve_orders
-    p2.print_solution(np.linalg.solve(T, U), b, n)
-  File "<__array_function__ internals>", line 5, in solve
-  File "D:\Programas\Programacion\Anaconda\lib\site-packages\numpy\linalg\linalg.py", line 394, in solve
-    r = gufunc(a, b, signature=signature, extobj=extobj)
-  File "D:\Programas\Programacion\Anaconda\lib\site-packages\numpy\linalg\linalg.py", line 88, in _raise_linalgerror_singular
-    raise LinAlgError("Singular matrix")
-numpy.linalg.LinAlgError: Singular matrix
+Parallel V sources at branches 0 and 1.

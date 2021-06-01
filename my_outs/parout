@@ -1,14 +1,14 @@
 Traceback (most recent call last):
   File "zlel_main.py", line 26, in <module>
     zl1.solveCircuit(filename)
-  File "C:\Users\Pello Usabiaga\Documents\GitHub repositorios\IE\ZLEL\ZLEL-proiektua\zlel\zlel_p1_errore_kontrola.py", line 978, in solveCircuit
+  File "D:\Documentos\Github\ZLEL proiektua\zlel\zlel_p1_errore_kontrola.py", line 902, in solveCircuit
     [cir_el, cir_nd, cir_val, cir_ctr, orders] = cir_parser(filename)
-  File "C:\Users\Pello Usabiaga\Documents\GitHub repositorios\IE\ZLEL\ZLEL-proiektua\zlel\zlel_p1_errore_kontrola.py", line 157, in cir_parser
+  File "D:\Documentos\Github\ZLEL proiektua\zlel\zlel_p1_errore_kontrola.py", line 118, in cir_parser
     file = np.array(np.loadtxt(filename, dtype=str))
-  File "C:\ProgramData\Anaconda3\lib\site-packages\numpy\lib\npyio.py", line 1065, in loadtxt
+  File "D:\Programas\Programacion\Anaconda\lib\site-packages\numpy\lib\npyio.py", line 961, in loadtxt
     fh = np.lib._datasource.open(fname, 'rt', encoding=encoding)
-  File "C:\ProgramData\Anaconda3\lib\site-packages\numpy\lib\_datasource.py", line 194, in open
+  File "D:\Programas\Programacion\Anaconda\lib\site-packages\numpy\lib\_datasource.py", line 195, in open
     return ds.open(path, mode, encoding=encoding, newline=newline)
-  File "C:\ProgramData\Anaconda3\lib\site-packages\numpy\lib\_datasource.py", line 528, in open
+  File "D:\Programas\Programacion\Anaconda\lib\site-packages\numpy\lib\_datasource.py", line 532, in open
     return _file_openers[ext](found, mode=mode,
 PermissionError: [Errno 13] Permission denied: 'cirs/\\parser'

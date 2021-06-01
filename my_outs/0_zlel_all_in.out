@@ -1,8 +1,8 @@
 Traceback (most recent call last):
   File "zlel_main.py", line 26, in <module>
     zl1.solveCircuit(filename)
-  File "C:\Users\Pello Usabiaga\Documents\GitHub repositorios\IE\ZLEL\ZLEL-proiektua\zlel\zlel_p1_errore_kontrola.py", line 978, in solveCircuit
+  File "D:\Documentos\Github\ZLEL proiektua\zlel\zlel_p1_errore_kontrola.py", line 902, in solveCircuit
     [cir_el, cir_nd, cir_val, cir_ctr, orders] = cir_parser(filename)
-  File "C:\Users\Pello Usabiaga\Documents\GitHub repositorios\IE\ZLEL\ZLEL-proiektua\zlel\zlel_p1_errore_kontrola.py", line 170, in cir_parser
+  File "D:\Documentos\Github\ZLEL proiektua\zlel\zlel_p1_errore_kontrola.py", line 131, in cir_parser
     raise ValueError
 ValueError

@@ -1,28 +1,16 @@
-0.6
-wololo
--0.03252080736600656 0.03219881917426392 0.03219881917426392 -0.046458296237152225 0.0006475349058521581 -0.009388090020800053
-0.6
-wololo
--0.03252080736600656 0.03219881917426392 0.03219881917426392 -0.046458296237152225 0.0006475349058521581 -0.009388090020800053
-0.6
-wololo
--0.03252080736600656 0.03219881917426392 0.03219881917426392 -0.046458296237152225 0.0006475349058521581 -0.009388090020800053
-0.6
-wololo
--0.03252080736600656 0.03219881917426392 0.03219881917426392 -0.046458296237152225 0.0006475349058521581 -0.009388090020800053
-0.6
-wololo
--0.03252080736600656 0.03219881917426392 0.03219881917426392 -0.046458296237152225 0.0006475349058521581 -0.009388090020800053
-0.6
-wololo
--0.03252080736600656 0.03219881917426392 0.03219881917426392 -0.046458296237152225 0.0006475349058521581 -0.009388090020800053
-Traceback (most recent call last):
-  File "zlel_main.py", line 25, in <module>
-    zl1.solveCircuit(filename)
-  File "D:\Documentos\Github\ZLEL proiektua\zlel\zlel_p1.py", line 1028, in solveCircuit
-    solve_orders(T, U, orders, branch_list, nd_list, el_num, Aa, filenameDC,
-  File "D:\Documentos\Github\ZLEL proiektua\zlel\zlel_p1.py", line 859, in solve_orders
-    solveDC(order, b, n, cirLineal)
-  File "D:\Documentos\Github\ZLEL proiektua\zlel\zlel_p1.py", line 869, in solveDC
-    with open(filenameDC, 'w') as file:
-NameError: name 'filenameDC' is not defined
+3 Elements
+3 Different nodes: [0 1 2]
+
+4 Branches:
+	1. branch:	I01,	i1,	v1=e0-e1
+	2. branch:	V01,	i2,	v2=e2-e0
+	3. branch:	Q01_be,	i3,	v3=e1-e0
+	4. branch:	Q01_bc,	i4,	v4=e1-e2
+
+10 variables: 
+e1, e2, i1, i2, i3, i4, v1, v2, v3, v4
+
+Incidence Matrix:
+[[ 1 -1 -1  0]
+ [-1  0  1  1]
+ [ 0  1  0 -1]]

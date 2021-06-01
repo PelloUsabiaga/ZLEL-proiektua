@@ -23,12 +23,12 @@ i5 =  [ 0.00017628]
 5 Elements
 4 Different nodes: [0 1 2 3]
 
-4 Branches:
-	0. branch:	V01,	i0,	v0=e1-e0
-	1. branch:	R01,	i1,	v1=e1-e2
-	2. branch:	D01,	i2,	v2=e2-e0
-	3. branch:	R02,	i3,	v3=e2-e3
-	4. branch:	D02,	i4,	v4=e3-e0
+5 Branches:
+	1. branch:	V01,	i1,	v1=e1-e0
+	2. branch:	R01,	i2,	v2=e1-e2
+	3. branch:	D01,	i3,	v3=e2-e0
+	4. branch:	R02,	i4,	v4=e2-e3
+	5. branch:	D02,	i5,	v5=e3-e0
 
 13 variables: 
 e1, e2, e3, i1, i2, i3, i4, i5, v1, v2, v3, v4, v5

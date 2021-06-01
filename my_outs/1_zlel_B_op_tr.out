@@ -12,13 +12,3 @@ i2 =  [ 0.]
 
 ================= End solution =================
 
-Traceback (most recent call last):
-  File "zlel_main.py", line 25, in <module>
-    zl1.solveCircuit(filename)
-  File "D:\Documentos\Github\ZLEL proiektua\zlel\zlel_p1.py", line 1028, in solveCircuit
-    solve_orders(T, U, orders, branch_list, nd_list, el_num, Aa, filenameDC,
-  File "D:\Documentos\Github\ZLEL proiektua\zlel\zlel_p1.py", line 862, in solve_orders
-    solveTR(order, b, n, cirLineal, branch_list, filenameTR, A)
-  File "D:\Documentos\Github\ZLEL proiektua\zlel\zlel_p1.py", line 945, in solveTR
-    np.linalg.solve(T, Ui))
-NameError: name 'T' is not defined

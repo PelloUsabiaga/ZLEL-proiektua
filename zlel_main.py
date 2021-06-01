@@ -22,8 +22,8 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         filename = sys.argv[1]
     else:
-        filename = "cirs/all/2_zlel_Q_ezaugarri.cir"
+        filename = "cirs/all/1_zlel_OPAMP_E_G_op.cir"
     zl1.solveCircuit(filename)
     filenameTR = filename[:-3] + "tr"
     filenameDC = filename[:-3] + "dc"
-    zl2.plot_from_cvs(filenameDC, "V", "i3", "wololo")
+    # zl2.plot_from_cvs(filenameTR, "t", "i3", "wololo")

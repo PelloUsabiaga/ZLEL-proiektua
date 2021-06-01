@@ -21,7 +21,6 @@ else:
 
 
 def getTransposeMatrix(matrix):
-    
     transpose = np.zeros((len(matrix[0]), len(matrix)))
     for row in range(len(matrix)):
         for el in range(len(matrix[0])):
@@ -111,7 +110,7 @@ def save_as_csv(b, n, filename):
             # Inserte the time
             sol = np.insert(sol, 0, t)
             # sol to csv
-            sol_csv = ','.join(['%.5f' % num for num in sol])
+            sol_csv = ','.join(['%.9f' % num for num in sol])
             print(sol_csv, file=file)
             t = t + 1
 

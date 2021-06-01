@@ -1,10 +1,15 @@
 Traceback (most recent call last):
-  File "zlel_main.py", line 25, in <module>
+  File "zlel_main.py", line 26, in <module>
     zl1.solveCircuit(filename)
-  File "D:\Documentos\Github\ZLEL proiektua\zlel\zlel_p1.py", line 1028, in solveCircuit
+  File "D:\Documentos\Github\ZLEL proiektua\zlel\zlel_p1_errore_kontrola.py", line 976, in solveCircuit
     solve_orders(T, U, orders, branch_list, nd_list, el_num, Aa, filenameDC,
-  File "D:\Documentos\Github\ZLEL proiektua\zlel\zlel_p1.py", line 862, in solve_orders
-    solveTR(order, b, n, cirLineal, branch_list, filenameTR, A)
-  File "D:\Documentos\Github\ZLEL proiektua\zlel\zlel_p1.py", line 945, in solveTR
+  File "D:\Documentos\Github\ZLEL proiektua\zlel\zlel_p1_errore_kontrola.py", line 800, in solve_orders
+    solveTR(order, b, n, cirLineal, branch_list, filenameTR, A, T)
+  File "D:\Documentos\Github\ZLEL proiektua\zlel\zlel_p1_errore_kontrola.py", line 888, in solveTR
     np.linalg.solve(T, Ui))
-NameError: name 'T' is not defined
+  File "<__array_function__ internals>", line 5, in solve
+  File "D:\Programas\Programacion\Anaconda\lib\site-packages\numpy\linalg\linalg.py", line 394, in solve
+    r = gufunc(a, b, signature=signature, extobj=extobj)
+  File "D:\Programas\Programacion\Anaconda\lib\site-packages\numpy\linalg\linalg.py", line 88, in _raise_linalgerror_singular
+    raise LinAlgError("Singular matrix")
+numpy.linalg.LinAlgError: Singular matrix

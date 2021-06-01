@@ -20,11 +20,22 @@ import math
 
 def check_file_correct(filename, branch_list, cir_nd, cir_el):
     correct = True
+    correct *= check_zero_node_exists(branch_list)
+    correct *= check_parallel_voltage_source(branch_list)
     correct *= check_not_series_current_sources(branch_list)
-    correct *= check_not_connected_node(cir_nd)
-    correct *= check_zero_node_exists(cir_nd)
-    correct *= check_parallel_voltage_source(cir_el, cir_nd)
+    correct *= check_not_connected_node(branch_list)
+    correct *= check_controled_elements_correct(branch_list)
     return correct
+
+
+def check_controled_elements_correct(branch_list):
+    controled_elements = {"G", "E"}
+    for branch in branch_list:
+        if branch.name[0] in controled_elements:
+            if branch.control == ['0']:
+                sys.exit(branch.printName
+                         + " controled sorce have not controler.")
+    return True
 
 
 def check_not_series_current_sources(branch_list):
@@ -46,17 +57,32 @@ def check_not_series_current_sources(branch_list):
                         node_correct = True
                         break
                 if not node_correct:
-                    error_in_branch = True
+                    out_curr = 0
+                    for branch in conected:
+                        out_curr += branch.get_out_current(node)
+                    if out_curr != 0:
+                        sys.exit("I sources in series at node " + str(node)
+                                 + ".")
             if error_in_branch:
                 cir_correct = False
                 break
     return cir_correct
 
 
-def check_not_connected_node(cir_nd):
-    node_qty = get_node_qty(cir_nd)
-    if 1 in node_qty.values():
-        raise ValueError
+def check_not_connected_node(branch_list):
+    nd_cuantity = dict()
+    for branch in branch_list:
+        if branch.incoming_node in nd_cuantity:
+            nd_cuantity[branch.incoming_node] += 1
+        else:
+            nd_cuantity[branch.incoming_node] = 1
+        if branch.outcoming_node in nd_cuantity:
+            nd_cuantity[branch.outcoming_node] += 1
+        else:
+            nd_cuantity[branch.outcoming_node] = 1
+    for nd, cuantity in zip(nd_cuantity.keys(), nd_cuantity.values()):
+        if cuantity == 1:
+            sys.exit("Node " + str(nd) + " is floating.")
     return True
 
 
@@ -72,65 +98,32 @@ def get_node_qty(cir_nd):
     return node_qty
 
 
-def check_zero_node_exists(cir_nd):
-    for node_list in cir_nd:
-        for node in node_list:
-            # todo parse string
-            if node == 0:
-                return True
-    raise ValueError
-
-
-def check_parallel_voltage_source(cir_el, cir_nd):
-    voltage_sources = []
-    for el, node_list in zip(cir_el, cir_nd):
-        if np.str_.upper(el[0])[0] == "V":
-            for node in voltage_sources:
-                if node[0] == node_list[0] and node[1] == node_list[1]:
-                    raise ValueError
-                if node[1] == node_list[0] and node[0] == node_list[1]:
-                    raise ValueError
-            voltage_sources.append(node_list)
-    return True
-
-
-def check_node_current(path, node, isource, branch_list, firts_loop=False):
-
-    # praktikan egindakoa hemendik bera
-    branches = []
-    aux = True
-    i, j = 0, 0
+def check_zero_node_exists(branch_list):
     for branch in branch_list:
-        if branch.is_node_in(node):
-            childs = branch.get_childs(())
-            for child in childs:
-                i += 1
-            if i and not firts_loop:
-                return True
-            elif branch.name == "I":
-                j += j
-    return aux
+        if branch.incoming_node == 0 or branch.outcoming_node == 0:
+            return True
+    sys.exit("Reference node \"0\" is not defined in the circuit.")
 
-    # for branch in branches:
-    #     branches += check_node_current(path, )
 
-    for branch in branches:
-        if branch not in path:
-            if branch.name == isource:
-                print("a")
-                return True
-            elif branch.name[0] == "I":
-                print("pass 1")
-                continue
-            else:
-                print("else")
-                path.add(branch)
-                if check_node_current(path, branch.get_oposite_node(node),
-                                      isource, branch_list):
-                    return True
-                else:
-                    continue
-    return False
+def check_parallel_voltage_source(branch_list):
+    voltage_sources = []
+    for branch in branch_list:
+        if branch.name[0] == "V":
+            for vsource in voltage_sources:
+                if (branch.incoming_node == vsource.incoming_node
+                        and branch.outcoming_node == vsource.outcoming_node):
+                    if branch.value[0] != vsource.value[0]:
+                        sys.exit("Parallel V sources at branches "
+                                 + str(branch.incoming_node) + " and "
+                                 + str(branch.outcoming_node) + ".")
+                if (branch.incoming_node == vsource.outcoming_node
+                        and branch.outcoming_node == vsource.incoming_node):
+                    if branch.value[0] != -vsource.value[0]:
+                        sys.exit("Parallel V sources at branches "
+                                 + str(branch.incoming_node) + " and "
+                                 + str(branch.outcoming_node) + ".")
+            voltage_sources.append(branch)
+    return True
 
 
 def cir_parser(filename):
@@ -209,53 +202,6 @@ def get_element_N(cir_el):
     return cir_el.size
 
 
-class node:
-    """
-        This class is used to represent nodes, and to work creating and
-        manipulating them.
-    """
-
-    name = None
-    used_branches = set()
-    father = None
-
-    def __init__(self, name, used_branches, father):
-        self.name = name
-        self.used_branches = used_branches
-        self.father = father
-
-    def get_childrens(self, branch_list):
-        childrens = set()
-        for branch in branch_list:
-            if (branch.is_node_in(self.name) and
-                    branch not in self.used_branches):
-
-                childrens.add(node(branch.get_oposite_node(self.name),
-                                   self.used_branches | {branch}, self))
-        return childrens
-
-    def __repr__(self):
-        return(str(self.name) + " node")
-
-
-def check_current_source(node, in_node_name, branch_list):
-    childrens = node.get_childrens(branch_list)
-    for child in childrens:
-        branch_set = child.used_branches - node.used_branches
-        branch = branch_set.pop()
-        if branch.name[0] == "I":
-            continue
-        elif child.name == in_node_name:
-            print("aurkitu")
-            return True
-        else:
-            print("branch arrunta")
-            if check_current_source(child, in_node_name, branch_list):
-                print("jaja, semeak aurkitua")
-                return True
-    return False
-
-
 class branch:
     """
         This class is used to represent branches, and to work creating and
@@ -290,6 +236,16 @@ class branch:
 
     def insert_DC_value(self, value):
         self.value[0] = value
+
+    def get_out_current(self, node):
+        if self.name[0] != "I":
+            sys.exit("current source function was called by not current "
+                     + "source element")
+            raise(ValueError)
+        if node == self.outcoming_node:
+            return self.value[0]
+        else:
+            return -self.value[0]
 
     def __str__(self):
         return("\t" + str(self.printN) + ". branch:\t" + self.printName +
@@ -511,7 +467,7 @@ def get_M_matrix(branch_list, nonLinealVoltages="kaixo",
                  dinamicValues="kaixo", h=0):
     matrix = np.zeros([len(branch_list), len(branch_list)])
     if type(nonLinealVoltages) == str and type(dinamicValues) == str:
-       # circuit is resistive and lineal
+        # circuit is resistive and lineal
         for i in range(len(branch_list)):
             matrix[i] = branch_list[i].get_M_row(branch_list)
     elif type(nonLinealVoltages) == str:
@@ -520,9 +476,10 @@ def get_M_matrix(branch_list, nonLinealVoltages="kaixo",
             if math.isnan(dinamicValues[i]):
                 matrix[i] = branch_list[i].get_M_row(branch_list)
             else:
-                if branch_list[i].name[0] == "C" or branch_list[i].name[0] == "L":
+                if (branch_list[i].name[0] == "C"
+                        or branch_list[i].name[0] == "L"):
                     matrix[i] = branch_list[i].get_M_row(branch_list, dinVal=dinamicValues[i], h=h)
-                    
+
     elif type(dinamicValues) == str:
         # circuit is resistive and non lineal
         for i in range(len(branch_list)):
@@ -535,7 +492,8 @@ def get_M_matrix(branch_list, nonLinealVoltages="kaixo",
                     elif branch_list[i].name[-1] == "C":
                         matrix[i] = branch_list[i].get_M_row(branch_list, vbe=nonLinealVoltages[i-1], vbc=nonLinealVoltages[i])
                 elif branch_list[i].name[0] == "D":
-                    matrix[i] = branch_list[i].get_M_row(branch_list, nonLinealVoltages[i])
+                    matrix[i] = branch_list[i].get_M_row(branch_list,
+                                                         nonLinealVoltages[i])
 
     else:
         # circuit is dinamic and non lineal
@@ -549,7 +507,8 @@ def get_M_matrix(branch_list, nonLinealVoltages="kaixo",
                     elif branch_list[i].name[-1] == "C":
                         matrix[i] = branch_list[i].get_M_row(branch_list, vbe=nonLinealVoltages[i-1], vbc=nonLinealVoltages[i])
                 elif branch_list[i].name[0] == "D":
-                    matrix[i] = branch_list[i].get_M_row(branch_list, nonLinealVoltages[i])
+                    matrix[i] = branch_list[i].get_M_row(branch_list,
+                                                         nonLinealVoltages[i])
                 if branch_list[i].name[0] == "C" or branch_list[i].name[0] == "L":
                     matrix[i] = branch_list[i].get_M_row(branch_list, dinVal=dinamicValues[i], h=h)
     return matrix
@@ -559,7 +518,7 @@ def get_N_matrix(branch_list, nonLinealVoltages="kaixo",
                  dinamicValues="kaixo", h=0):
     matrix = np.zeros([len(branch_list), len(branch_list)])
     if type(nonLinealVoltages) == str and type(dinamicValues) == str:
-       # circuit is resistive and lineal
+        # circuit is resistive and lineal
         for i in range(len(branch_list)):
             matrix[i] = branch_list[i].get_N_row(branch_list)
     elif type(nonLinealVoltages) == str:
@@ -568,9 +527,10 @@ def get_N_matrix(branch_list, nonLinealVoltages="kaixo",
             if math.isnan(dinamicValues[i]):
                 matrix[i] = branch_list[i].get_N_row(branch_list)
             else:
-                if branch_list[i].name[0] == "C" or branch_list[i].name[0] == "L":
+                if (branch_list[i].name[0] == "C"
+                        or branch_list[i].name[0] == "L"):
                     matrix[i] = branch_list[i].get_N_row(branch_list, dinVal=dinamicValues[i], h=h)
-                    
+
     elif type(dinamicValues) == str:
         # circuit is resistive and non lineal
         for i in range(len(branch_list)):
@@ -588,7 +548,8 @@ def get_N_matrix(branch_list, nonLinealVoltages="kaixo",
     else:
         # circuit is dinamic and non lineal
         for i in range(len(branch_list)):
-            if math.isnan(nonLinealVoltages[i]) and math.isnan(dinamicValues[i]):
+            if math.isnan((nonLinealVoltages[i])
+                          and math.isnan(dinamicValues[i])):
                 matrix[i] = branch_list[i].get_N_row(branch_list)
             else:
                 if branch_list[i].name[0] == "Q":
@@ -597,8 +558,10 @@ def get_N_matrix(branch_list, nonLinealVoltages="kaixo",
                     elif branch_list[i].name[-1] == "C":
                         matrix[i] = branch_list[i].get_N_row(branch_list)
                 elif branch_list[i].name[0] == "D":
-                    matrix[i] = branch_list[i].get_N_row(branch_list, nonLinealVoltages[i])
-                if branch_list[i].name[0] == "C" or branch_list[i].name[0] == "L":
+                    matrix[i] = branch_list[i].get_N_row(branch_list,
+                                                         nonLinealVoltages[i])
+                if (branch_list[i].name[0] == "C"
+                        or branch_list[i].name[0] == "L"):
                     matrix[i] = branch_list[i].get_N_row(branch_list, dinVal=dinamicValues[i], h=h)
     return matrix
 
@@ -607,7 +570,7 @@ def get_Us_matrix(branch_list, t=0, nonLinealVoltages="kaixo",
                   dinamicValues="kaixo", h=0):
     matrix = np.zeros([len(branch_list), 1])
     if type(nonLinealVoltages) == str and type(dinamicValues) == str:
-       # circuit is resistive and lineal
+        # circuit is resistive and lineal
         for i in range(len(branch_list)):
             matrix[i] = branch_list[i].get_Us_row(t)
     elif type(nonLinealVoltages) == str:
@@ -616,9 +579,10 @@ def get_Us_matrix(branch_list, t=0, nonLinealVoltages="kaixo",
             if math.isnan(dinamicValues[i]):
                 matrix[i] = branch_list[i].get_Us_row(t)
             else:
-                if branch_list[i].name[0] == "C" or branch_list[i].name[0] == "L":
+                if (branch_list[i].name[0] == "C"
+                        or branch_list[i].name[0] == "L"):
                     matrix[i] = branch_list[i].get_Us_row(t, dinVal=dinamicValues[i], h=h)
-                    
+
     elif type(dinamicValues) == str:
         # circuit is resistive and non lineal
         for i in range(len(branch_list)):
@@ -631,12 +595,14 @@ def get_Us_matrix(branch_list, t=0, nonLinealVoltages="kaixo",
                     elif branch_list[i].name[-1] == "C":
                         matrix[i] = branch_list[i].get_Us_row(t, nonLinealVoltages[i-1], nonLinealVoltages[i])
                 elif branch_list[i].name[0] == "D":
-                    matrix[i] = branch_list[i].get_Us_row(t, nonLinealVoltages[i])
+                    matrix[i] = branch_list[i].get_Us_row(t,
+                                                          nonLinealVoltages[i])
 
     else:
         # circuit is dinamic and non lineal
         for i in range(len(branch_list)):
-            if math.isnan(nonLinealVoltages[i]) and math.isnan(dinamicValues[i]):
+            if math.isnan((nonLinealVoltages[i])
+                          and math.isnan(dinamicValues[i])):
                 matrix[i] = branch_list[i].get_Us_row(t)
             else:
                 if branch_list[i].name[0] == "Q":
@@ -645,8 +611,10 @@ def get_Us_matrix(branch_list, t=0, nonLinealVoltages="kaixo",
                     elif branch_list[i].name[-1] == "C":
                         matrix[i] = branch_list[i].get_Us_row(t, nonLinealVoltages[i-1], nonLinealVoltages[i])
                 elif branch_list[i].name[0] == "D":
-                    matrix[i] = branch_list[i].get_Us_row(t, nonLinealVoltages[i])
-                if branch_list[i].name[0] == "C" or branch_list[i].name[0] == "L":
+                    matrix[i] = branch_list[i].get_Us_row(t,
+                                                          nonLinealVoltages[i])
+                if (branch_list[i].name[0] == "C"
+                        or branch_list[i].name[0] == "L"):
                     matrix[i] = branch_list[i].get_Us_row(t, dinVal=dinamicValues[i], h=h)
     return matrix
 
@@ -697,7 +665,7 @@ def get_el_branches(name, nd, N, val, ctr, nonLinealBranchN):
                     "R": ((0, 1, ""),),
                     "D": ((0, 1, ""),),
                     "Q": ((1, 2, "_be"), (1, 0, "_bc"),),
-                    "A": ((0, 1, "_in"), (2, 3, "_out")),
+                    "A": ((0, 1, "_in"), (2, 3, "_ou")),
                     "E": ((0, 1, ""),),
                     "G": ((0, 1, ""),),
                     "H": ((0, 1, ""),),
@@ -844,7 +812,6 @@ def solveDC(order, b, n, cirLineal, filenameDC, U, branch_list, T, A):
         step = values[2]
         finalValue = values[1]
         while currentValue <= finalValue:
-            # TODO EGUNERATU
             Ui = U
             index_name = order[8]
             changeableBranch = get_branch_by_name(index_name, branch_list)
@@ -859,7 +826,7 @@ def solveDC(order, b, n, cirLineal, filenameDC, U, branch_list, T, A):
                                      solveNonLinealOP(b, n, T=T, U=Ui,
                                                       branch_list=branch_list,
                                                       A=A))
-            sol_csv = ','.join(['%.5f' % num for num in solution])
+            sol_csv = ','.join(['%.9f' % num for num in solution])
             print(sol_csv, file=file)
             currentValue += step
 
@@ -890,7 +857,6 @@ def solveTR(order, b, n, cirLineal, branch_list, filenameTR, A, T):
             else:
                 dinamicValues[branch.N] = None
         while currentValue <= finalValue:
-            # TODO EGUNERATU
             if cirDinamic:
                 Mi = get_M_matrix(branch_list, dinamicValues=dinamicValues,
                                   h=h)
@@ -911,7 +877,7 @@ def solveTR(order, b, n, cirLineal, branch_list, filenameTR, A, T):
                                                           A=A))
                 for index, name in zip(dinamicIndex, dinamicNames):
                     if name[0] == "C":
-                        dinamicValues[index] = solution[index+n] ##problema!!
+                        dinamicValues[index] = solution[index+n]
                     if name[0] == "L":
                         dinamicValues[index] = solution[index+n+b]
             else:
@@ -926,7 +892,7 @@ def solveTR(order, b, n, cirLineal, branch_list, filenameTR, A, T):
                                                           t=currentValue,
                                                           branch_list=branch_list,
                                                           A=A))
-            sol_csv = ','.join(['%.5f' % num for num in solution])
+            sol_csv = ','.join(['%.9f' % num for num in solution])
             print(sol_csv, file=file)
             currentValue += step
 
@@ -970,7 +936,7 @@ def solveNonLinealOP(b, n, T, U, branch_list, A, t=0):
             return currentSol
             break
         elif iteration > max_iteration:
-            print("todo mal")
+            print("Iterazio maximo kopurua gainditu da")
 
 
 def solveCircuit(filename):
@@ -1011,17 +977,10 @@ def solveCircuit(filename):
                  filenameTR, A)
 
 
-"""
-https://stackoverflow.com/questions/419163/what-does-if-name-main-do
-https://stackoverflow.com/questions/19747371/
-python-exit-commands-why-so-many-and-when-should-each-be-used
-"""
-
-
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         filename = sys.argv[1]
     else:
         filename = "../cirs/all/2_zlel_Q_ezaugarri.cir"
 
-    solveCircuit()
+    solveCircuit(filename)
