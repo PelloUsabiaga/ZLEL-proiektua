@@ -24,7 +24,7 @@ if __name__ == "__main__":
     else:
         path = "cirs/all/"
         filename =  "2_zlel_Q_ezaugarri.cir"
-    zl1.solveCircuit(path + filename)
+    zl1.solve_circuit(path + filename)
     filenameTR = filename[:-3] + "tr"
     filenameDC = filename[:-3] + "dc"
     zl2.plot_from_cvs(path + filenameDC, "V", "i3", "wololo")
