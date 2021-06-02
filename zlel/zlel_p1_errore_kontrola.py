@@ -449,6 +449,25 @@ class Branch:
         return gj, ij
 
     def transistor_values(self, vbe=0.6, vbc=0.6):
+
+        """
+            This function takes the vbe and vbc voltages and computes the transistor parameters for this
+            specific voltages following Ebers-Mollen transistor model.
+
+        Args:
+            vbe: float, voltage difference between base and emitter.
+            vbc: float, voltage difference between base and collector.
+
+        Returns:
+            #TODO PELLO AYUDA PA EXPLICAR Gxx que no he hecho gailus optolucumecatronos
+            g11: float,
+            g12: float,
+            g21: float,
+            g22: float,
+            ie: float, current passing away collector.
+            ic: float, current passing away collector.
+        """
+
         if self.name[0] != "Q":
             sys.exit("diod function was called by not diod element")
             raise ValueError
