@@ -321,6 +321,12 @@ class branch:
         elif self.name[0] == "L":
             row[self.N] = -1*h/self.value[0]
 
+        elif self.name[0] == "A":
+            if self.name[-1] == "N":
+                row[self.N] = 1
+            if self.name[-1] == "U":
+                pass
+
         return row
 
     def get_N_row(self, branch_list, Vi=0.6, dinVal=0, h=1):
@@ -371,6 +377,12 @@ class branch:
         elif self.name[0] == "L":
             row[self.N] = 1
 
+        elif self.name[0] == "A":
+            if self.name[-1] == "N":
+                pass
+            if self.name[-1] == "U":
+                row[self.N - 1] = 1
+
         return row
 
     def get_Us_row(self, t, Vi=0.6, Vbc=0.6, dinVal=0, h=1):
@@ -416,6 +428,12 @@ class branch:
 
         elif self.name[0] == "L":
             row[0] = dinVal
+
+        elif self.name[0] == "A":
+            if self.name[-1] == "N":
+                row[0] = 0
+            if self.name[-1] == "U":
+                row[0] = 0
 
         return row
 
