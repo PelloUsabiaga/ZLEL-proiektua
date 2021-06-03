@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 """
 .. module:: zlel_main.py
-    :synopsis:
+    :synopsis: main module of the program.
 
-.. moduleauthor:: YOUR NAME AND E-MAIL
-
+.. moduleauthor:: Ander Dokando (anddokan@gmail.com) and Pello Usabiaga
+(pellousabiaga@gmail.com).
 
 """
 
@@ -13,17 +13,13 @@ import zlel.zlel_p1_errore_kontrola as zl1
 import zlel.zlel_p2 as zl2
 import sys
 
-"""
-https://stackoverflow.com/questions/419163/what-does-if-name-main-do
-https://stackoverflow.com/questions/19747371/
-python-exit-commands-why-so-many-and-when-should-each-be-used
-"""
+
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         filename = sys.argv[1]
     else:
         path = "cirs/all/"
-        filename =  "2_zlel_Q_ezaugarri.cir"
+        filename = "2_zlel_Q_ezaugarri.cir"
     zl1.solve_circuit(path + filename)
     filenameTR = filename[:-3] + "tr"
     filenameDC = filename[:-3] + "dc"

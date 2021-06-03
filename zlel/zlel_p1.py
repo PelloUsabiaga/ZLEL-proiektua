@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 """
 .. module:: zlel_main.py
-    :synopsis:
+    :synopsis: This module is used to solve .cir circuits.
 
-.. module_author:: YOUR NAME AND E-MAIL
-
+.. module_author:: Ander Dokando (anddokan@gmail.com) and Pello Usabiaga
+(pellousabiaga@gmail.com).
 
 """
 
@@ -20,6 +20,21 @@ else:
 
 
 def check_file_correct(branch_list):
+    """
+        This function checks if the circuit is correct, checking if zero node
+        exists, if there is any parallel voltage source or series current
+        current source, if there is any node not conected, or if all the
+        controled elements have a correct controller.
+
+    Args:
+        branch_list : np.array with circuits branches.
+
+    Returns:
+        True if circuit is correct.
+    Rises:
+        SystemExit
+
+    """
     correct = True
     correct *= check_zero_node_exists(branch_list)
     correct *= check_parallel_voltage_source(branch_list)
@@ -30,6 +45,20 @@ def check_file_correct(branch_list):
 
 
 def check_controlled_elements_correct(branch_list):
+    """
+        This function checks if all the controlled elemets have a controller
+        element. If not, program stops and returns "X controlled source have
+        not controler." from sys.exit.
+
+    Args:
+        branch_list : np.array with circuits branches.
+
+    Returns:
+        True if all controlled elements are correct.
+    Rises:
+        SystemExit
+
+    """
     controlled_elements = {"G", "E"}
     for branch in branch_list:
         if branch.name[0] in controlled_elements:
@@ -40,6 +69,20 @@ def check_controlled_elements_correct(branch_list):
 
 
 def check_not_series_current_sources(branch_list):
+    """
+        This function checks for series current sources in the circuit. If
+        any founded, program stops and returns "I sources in series at node
+        i." from sys.exit.
+
+    Args:
+        branch_list : np.array with circuits branches.
+
+    Returns:
+        True if not series current sources founded.
+    Rises:
+        SystemExit
+
+    """
     cir_correct = True
     for branch in branch_list:
         if branch.name[0] == "I":
@@ -71,6 +114,19 @@ def check_not_series_current_sources(branch_list):
 
 
 def check_not_connected_node(branch_list):
+    """
+        This function checks for any not conected node in the circuit. If any
+        founded, program stops and returns "Node i is floating." from sys.exit.
+
+    Args:
+        branch_list : np.array with circuits branches.
+
+    Returns:
+        True if none not conected node founded.
+    Rises:
+        SystemExit
+
+    """
     nd_quantity = dict()
     for branch in branch_list:
         if branch.incoming_node in nd_quantity:
@@ -88,6 +144,18 @@ def check_not_connected_node(branch_list):
 
 
 def get_node_qty(cir_nd):
+    """
+        this function returns the total different nodes number.
+
+    Parameters:
+        cir_nd : np.array with nodes directly parsed from file.
+
+    Returns:
+        node_qty : int, represents the different nodes number.
+    Rises:
+
+
+    """
     node_qty = {}
     for node_list in cir_nd:
         for node in node_list:
@@ -100,6 +168,20 @@ def get_node_qty(cir_nd):
 
 
 def check_zero_node_exists(branch_list):
+    """
+        This function checks for zero node in the circuit. If not founded,
+        program stops and returns "Reference node "0" is not defined in the
+        circuit." from sys.exit.
+
+    Args:
+        branch_list : np.array with circuits branches.
+
+    Returns:
+        True if zero node founded.
+    Rises:
+        SystemExit
+
+    """
     for branch in branch_list:
         if branch.incoming_node == 0 or branch.outcoming_node == 0:
             return True
@@ -107,6 +189,20 @@ def check_zero_node_exists(branch_list):
 
 
 def check_parallel_voltage_source(branch_list):
+    """
+        This function checks for parallel voltage sources in the circuit. If
+        any founded, program stops and returns "Parallel V sources at branches
+        i and j.".
+
+    Args:
+        branch_list : np.array with circuits branches.
+
+    Returns:
+        True if not parallel voltage sources founded.
+    Rises:
+        SystemExit
+
+    """
     voltage_sources = []
     for branch in branch_list:
         if branch.name[0] == "V":
@@ -222,6 +318,25 @@ class Branch:
 
     def __init__(self, name, nd, n, print_n, value, control, lineal=True,
                  dynamic=False):
+        """
+            Branch class initializer, asigns some parameters to local fields.
+
+        Parameters:
+            name: String, with branchs name.
+            nd: tuple, with the incoming node and the outcoming node ints.
+            n: int, the branchs ordinal position.
+            print_n: String, the name, only for printing.
+            value: nd.array, with branchs values, descriveing the element.
+            control: String, the controler info.
+            lineal: boolean, represent if branch is lineal. Optional. The
+            default is True.
+            dynamic: boolean, represent if branch is dynamic. Optional. The
+            default is False.
+
+        Returns:
+
+        Rises:
+        """
         self.name = name.upper()
         self.printName = name
         self.outcoming_node = nd[0]
@@ -236,9 +351,34 @@ class Branch:
             control[i] = control[i].upper()
 
     def insert_dc_value(self, value):
+        """
+            Changes the branchs first value, sould be used for .DC analisis.
+
+        Parameters:
+        value : float, the new value for element.
+
+        Returns:
+
+        Rise:
+
+        """
         self.value[0] = value
 
     def get_out_current(self, node):
+        """
+            Returns the branch normalized current considering a direction. For
+            current sources checking.
+
+        Parameters:
+            node : int, the node referent to which the current will be geaven.
+
+        Returns:
+            float current normalized value.
+
+        Raises:
+            ValueError if called from no current source element.
+
+        """
         if self.name[0] != "I":
             sys.exit("current source function was called by not current "
                      + "source element")
@@ -263,15 +403,40 @@ class Branch:
                "-e" + str(self.incoming_node) + "\n")
 
     def is_node_in(self, node):
+        """
+            Checks if a node is in the branch.
+
+        Parameters:
+            node : int, node to check
+
+        Returns:
+            true if node in, false else.
+        """
         return node == self.outcoming_node or node == self.incoming_node
 
-    def get_opposite_node(self, node):
-        if node == self.outcoming_node:
-            return self.incoming_node
-        else:
-            return self.outcoming_node
-
     def get_m_row(self, branch_list, vi=0.6, vbe=0.6, vbc=0.6, din_val=0, h=1):
+        """
+            Gets the correspondient row of the branch for the M matrix
+            construction.
+
+        Parameters:
+            branch_list : nd.array, with the circuit branches.
+            vi : float, for non lineal elements current voltages. Optional.
+            The default is 0.6.
+            vbe : float, for non lineal elements current voltages. Optional.
+            The default is 0.6.
+            vbc : float, for non lineal elements current voltages. Optional.
+            The default is 0.6.
+            din_val : float, for dinamic element current voltages. Optional.
+            The default is 0.
+            h : float, for dinamic elements, representing the transient
+            analisis steps size. Optional. The default is 1.
+
+        Returns:
+            row : np.array, with the correspondient row of the branch.
+
+        Rises:
+        """
         row = np.zeros(len(branch_list))
 
         if self.name[0] == "R":
@@ -331,6 +496,25 @@ class Branch:
         return row
 
     def get_n_row(self, branch_list, vi=0.6, din_val=0, h=1):
+        """
+            Gets the correspondient row of the branch for the N matrix
+            construction.
+
+        Parameters:
+            branch_list : nd.array, with the circuit branches.
+            vi : float, for non lineal elements current voltages. Optional.
+            The default is 0.6.
+            din_val : float, for dinamic element current voltages. Optional.
+            The default is 0.
+            h : float, for dinamic elements, representing the transient
+            analisis steps size. Optional. The default is 1.
+
+        Returns:
+            row : np.array, with the correspondient row of the branch.
+
+        Rises:
+
+        """
         row = np.zeros(len(branch_list))
 
         if self.name[0] == "R":
@@ -387,6 +571,27 @@ class Branch:
         return row
 
     def get_us_row(self, t, vi=0.6, vbc=0.6, din_val=0, h=1):
+        """
+            Gets the correspondient row of the branch for the Us matrix
+            construction.
+
+        Parameters:
+            branch_list : nd.array, with the circuit branches.
+            vi : float, for non lineal elements current voltages. Optional.
+            The default is 0.6.
+            vbc : float, for non lineal elements current voltages. Optional.
+            The default is 0.6.
+            din_val : float, for dinamic element current voltages. Optional.
+            The default is 0.
+            h : float, for dinamic elements, representing the transient
+            analisis steps size. Optional. The default is 1.
+
+        Returns:
+            row : np.array, with the correspondient row of the branch.
+
+        Rises:
+
+        """
         row = np.zeros(1)
         if self.name[0] == "R":
             pass
@@ -449,9 +654,9 @@ class Branch:
         return gj, ij
 
     def transistor_values(self, vbe=0.6, vbc=0.6):
-
         """
-            This function takes the vbe and vbc voltages and computes the transistor parameters for this
+            This function takes the vbe and vbc voltages and computes the
+            transistor parameters for this
             specific voltages following Ebers-Mollen transistor model.
 
         Args:
@@ -459,11 +664,10 @@ class Branch:
             vbc: float, voltage difference between base and collector.
 
         Returns:
-            #TODO PELLO AYUDA PA EXPLICAR Gxx que no he hecho gailus optolucumecatronos
-            g11: float,
-            g12: float,
-            g21: float,
-            g22: float,
+            g11: float, transistors parameter.
+            g12: float, transistors parameter.
+            g21: float, transistors parameter.
+            g22: float, transistors parameter.
             ie: float, current passing away collector.
             ic: float, current passing away collector.
         """
@@ -492,6 +696,17 @@ class Branch:
 
 
 def get_branch_by_name(brch_name, branch_list):
+    """
+        Get a branch from the circuit by its name.
+
+    Parameters:
+        brch_name : String, with the searched branchs name.
+        branch_list : np.array, with the circuit branches.
+
+    Returns
+        branch : Branch, the branch correspondign to the name.
+
+    """
     for branch in branch_list:
         if brch_name.__class__ == np.str_:
             brch_name = np.str_.upper(brch_name)
@@ -503,16 +718,19 @@ def get_branch_by_name(brch_name, branch_list):
 
 def get_m_matrix(branch_list, non_lineal_voltages="kaixo",
                  dynamic_values="kaixo", h=0):
-
     """
-        This function takes the branches and especial characteristics of the circuit and parse they to
+        This function takes the branches and especial characteristics of the
+        circuit and parse they to
         M matrix, voltage (Vn) matrix.
 
     Args:
-        branch_list: list of branches of the current circuit.
-        non_lineal_voltages: indicates if current circuit has non linear elements.
-            If don´t have it contains "kaixo" str, otherwise a list of float with the value for each branch
-        dynamic_values: indicates if current circuit has dynamic values. If don´t have it contains "kaixo" str,
+        branch_list: np.array of branches of the current circuit.
+        non_lineal_voltages: indicates if current circuit has non linear
+        elements.
+            If don´t have it contains "kaixo" str, otherwise a list of float
+            with the value for each branch
+        dynamic_values: indicates if current circuit has dynamic values. If
+        don´t have it contains "kaixo" str,
             otherwise a list of float with the value for each branch
         h: Int of jump in Euler backward method.
 
@@ -557,7 +775,8 @@ def get_m_matrix(branch_list, non_lineal_voltages="kaixo",
     else:
         # circuit is dynamic and non lineal
         for i in range(len(branch_list)):
-            if math.isnan(non_lineal_voltages[i]) and math.isnan(dynamic_values[i]):
+            if (math.isnan(non_lineal_voltages[i])
+                    and math.isnan(dynamic_values[i])):
                 matrix[i] = branch_list[i].get_m_row(branch_list)
             else:
                 if branch_list[i].name[0] == "Q":
@@ -572,30 +791,34 @@ def get_m_matrix(branch_list, non_lineal_voltages="kaixo",
                 elif branch_list[i].name[0] == "D":
                     matrix[i] = branch_list[i].get_m_row(branch_list,
                                                          non_lineal_voltages[i])
-                if branch_list[i].name[0] == "C" or branch_list[i].name[0] == "L":
+                if (branch_list[i].name[0] == "C"
+                        or branch_list[i].name[0] == "L"):
                     matrix[i] = branch_list[i].get_m_row(branch_list, din_val=dynamic_values[i], h=h)
     return matrix
 
 
 def get_n_matrix(branch_list, non_lineal_voltages="kaixo",
                  dynamic_values="kaixo", h=0):
-    
     """
-        This function takes the branches and especial characteristics of the circuit and parse they to
+        This function takes the branches and especial characteristics of the
+        circuit and parse they to
         N matrix, current (In) matrix.
 
     Args:
         branch_list: list of branches of the current circuit.
-        non_lineal_voltages: indicates if current circuit has non linear elements.
-            If don´t have it contains "kaixo" str, otherwise a list of float with the value for each branch
-        dynamic_values: indicates if current circuit has dynamic values. If don´t have it contains "kaixo" str,
+        non_lineal_voltages: indicates if current circuit has non linear
+        elements.
+            If don´t have it contains "kaixo" str, otherwise a list of float
+        with the value for each branch
+        dynamic_values: indicates if current circuit has dynamic values. If
+        don´t have it contains "kaixo" str,
             otherwise a list of float with the value for each branch
         h: Int of jump in Euler backward method.
 
     Returns:
         matrix : np array matrix of floats with the value for specific In
     """
-    
+
     matrix = np.zeros([len(branch_list), len(branch_list)])
     if type(non_lineal_voltages) == str and type(dynamic_values) == str:
         # circuit is resistive and lineal
@@ -648,6 +871,25 @@ def get_n_matrix(branch_list, non_lineal_voltages="kaixo",
 
 def get_us_matrix(branch_list, t=0, non_lineal_voltages="kaixo",
                   dynamic_values="kaixo", h=0):
+    """
+        This function takes the branches and especial characteristics of the
+        circuit and parse they to Us matrix.
+
+    Args:
+        branch_list: list of branches of the current circuit.
+        t: float, for t-dependient elements.
+        non_lineal_voltages: indicates if current circuit has non linear
+        elements.
+            If don´t have it contains "kaixo" str, otherwise a list of float
+        with the value for each branch
+        dynamic_values: indicates if current circuit has dynamic values. If
+        don´t have it contains "kaixo" str,
+            otherwise a list of float with the value for each branch
+        h: Int of jump in Euler backward method.
+
+    Returns:
+        matrix : np array matrix of floats with the value for specific Us.
+    """
     matrix = np.zeros([len(branch_list), 1])
     if type(non_lineal_voltages) == str and type(dynamic_values) == str:
         # circuit is resistive and lineal
@@ -700,6 +942,19 @@ def get_us_matrix(branch_list, t=0, non_lineal_voltages="kaixo",
 
 
 def get_t_matrix(m, n, a):
+    """
+        Builds the T matrix using voltages matrix M, currents matrix N, and
+        and morfologic matrix A.
+
+    Parameters
+        m : np.array, M matrix
+        n : np.array, N matrix
+        a : np.array, A matrix
+
+    Returns
+        t : np.array, T matrix of the circuit.
+
+    """
     at = -1 * np.transpose(a)
     la = len(a)
     lat = len(at)
@@ -716,6 +971,18 @@ def get_t_matrix(m, n, a):
 
 
 def get_u_matrix(a, us):
+    """
+        Builds the U matrix using matrix Us. Function needs A matrix to
+        get dimensions.
+
+    Parameters
+        us : np.array, Us matrix
+        a : np.array, A matrix
+
+    Returns
+        u : np.array, U matrix of the circuit.
+
+    """
     la = len(a)
     lat = len(np.transpose(a))
     lus = len(us)
@@ -796,8 +1063,8 @@ def get_branches(cir_el, cir_nd, cir_val, cir_ctr):
     for i in range(cir_el.size):
         n = len(branch_list)
         (brch_array, non_lineals) = get_el_branches(cir_el[i], cir_nd[i], n,
-                                                   cir_val[i], cir_ctr[i],
-                                                   )
+                                                    cir_val[i], cir_ctr[i],
+                                                    )
         branch_list = np.append(branch_list, brch_array)
         non_lineal_branch_n += non_lineals
     return branch_list
@@ -824,7 +1091,8 @@ def get_a(aa):
 
 def print_cir_info(nd_list, el_num, branch_list, aa):
     """
-    This function takes nd_list, el_num, branch_list and aa. And print the information of the current circuit
+    This function takes nd_list, el_num, branch_list and aa. And print the
+    information of the current circuit
 
     Args:
         cir_el: np array of strings with the elements to parse. size(1,b)
@@ -857,24 +1125,25 @@ def print_cir_info(nd_list, el_num, branch_list, aa):
     print(aa)
 
 
-def print_mnus(m, n, us):
-    """
-    This function takes m, n and us matrix  and print they.
-
-    Args:
-
-
-    """
-    print("\nM Matrix:")
-    print(m)
-    print("\nN Matrix:")
-    print(n)
-    print("\nUs Matrix:")
-    print(us)
-
-
 def solve_orders(t, u, orders, branch_list, nd_list, el_num, aa, filename_dc,
                  filename_tr, a):
+    """
+        This function takes circuit depending info, and use it to identify and
+        solve the orders in .cir file.
+
+    Parameters
+        t : np.array, circuit T matrix.
+        u : np.array, circuit U matrix.
+        orders : np.array, containing orders directly parsed from .cir file.
+        branch_list : nd.array, containing circuit branches.
+        nd_list : nd.array, containing circuit nodes.
+        el_num : int, containing element cantity.
+        aa : nd.array, circuits Aa matrix.
+        filename_dc : String, the filename to save .DC simulations results.
+        filename_tr : String, the filename to save .TR simulations results.
+        a : np.array, circuits A matrix.
+
+    """
     b = len(branch_list)
     n = len(nd_list)
     cir_lineal = True
@@ -888,11 +1157,13 @@ def solve_orders(t, u, orders, branch_list, nd_list, el_num, aa, filename_dc,
                 p2.print_solution(np.linalg.solve(t, u), b, n)
             else:
                 p2.print_solution(solve_non_lineal_op(b, n, t=t, u=u,
-                                                      branch_list=branch_list, a=a),
+                                                      branch_list=branch_list,
+                                                      a=a),
                                   b, n)
 
         elif order_id == ".DC":
-            solve_dc(order, b, n, cir_lineal, filename_dc, u, branch_list, t, a)
+            solve_dc(order, b, n, cir_lineal, filename_dc, u, branch_list, t,
+                     a)
 
         elif order_id == ".TR":
             solve_tr(order, b, n, cir_lineal, branch_list, filename_tr, a, t)
@@ -902,6 +1173,21 @@ def solve_orders(t, u, orders, branch_list, nd_list, el_num, aa, filename_dc,
 
 
 def solve_dc(order, b, n, cir_lineal, filename_dc, u, branch_list, t, a):
+    """
+        Solves .DC order.
+
+    Parameters:
+        order : nd.array .DC order info
+        b : int, branch number.
+        n : int, nodes number.
+        cir_lineal : boolean, to identify if circuit is lineal.
+        filename_dc : String, the filename to save .DC simulations results.
+        u : np.array, the U matrix of the circuit.
+        branch_list : nd.array, contains the branchs of the circuit.
+        t : np.array, the T matrix of the circuit.
+        a : np.array, the A matrix of the circuit.
+
+    """
     with open(filename_dc, 'w') as file:
         header = p2.build_csv_header(np.str_.upper(order[8][0]), b, n)
         print(header, file=file)
@@ -922,14 +1208,29 @@ def solve_dc(order, b, n, cir_lineal, filename_dc, u, branch_list, t, a):
             else:
                 solution = np.append(np.array([current_value]),
                                      solve_non_lineal_op(b, n, t=t, u=ui,
-                                                      branch_list=branch_list,
-                                                      a=a))
+                                                         branch_list=branch_list,
+                                                         a=a))
             sol_csv = ','.join(['%.9f' % num for num in solution])
             print(sol_csv, file=file)
             current_value += step
 
 
 def solve_tr(order, b, n, cir_lineal, branch_list, filename_tr, a, t):
+    """
+        Solves .TR order.
+
+    Parameters:
+        order : nd.array .DC order info
+        b : int, branch number.
+        n : int, nodes number.
+        cir_lineal : boolean, to identify if circuit is lineal.
+        filename_tr : String, the filename to save .TR simulations results.
+        u : np.array, the U matrix of the circuit.
+        branch_list : nd.array, contains the branchs of the circuit.
+        a : np.array, the A matrix of the circuit.
+        t : np.array, the T matrix of the circuit.
+
+    """
     cir_dynamic = False
     for branch in branch_list:
         if branch.dynamic:
@@ -970,7 +1271,9 @@ def solve_tr(order, b, n, cir_lineal, branch_list, filename_tr, a, t):
                 else:
                     solution = np.append(
                         np.array([current_value]),
-                        solve_non_lineal_op(b, n, t=ti, u=ui, time=current_value, branch_list=branch_list, a=a)
+                        solve_non_lineal_op(b, n, t=ti, u=ui,
+                                            time=current_value,
+                                            branch_list=branch_list, a=a)
                     )
                 for index, name in zip(dynamic_index, dynamic_names):
                     if name[0] == "C":
@@ -986,15 +1289,34 @@ def solve_tr(order, b, n, cir_lineal, branch_list, filename_tr, a, t):
                 else:
                     solution = np.append(np.array([current_value]),
                                          solve_non_lineal_op(b, n, t=t, u=ui,
-                                                          time=current_value,
-                                                          branch_list=branch_list,
-                                                          a=a))
+                                                             time=current_value,
+                                                             branch_list=branch_list,
+                                                             a=a))
             sol_csv = ','.join(['%.9f' % num for num in solution])
             print(sol_csv, file=file)
             current_value += step
 
 
 def solve_non_lineal_op(b, n, t, u, branch_list, a, time=0):
+    """
+        Function to solve the operation point of a non lineal circuit. Uses
+        the NR method for it.
+
+    Parameters:
+        b : int, the circuits branches cuantity.
+        n : int, the circuits nodes cuantity.
+        t : np.array, the T matrix of the circuit.
+        u : np.array, the U matrix of the circuit.
+        branch_list : TYPE
+        a : np.array, the A matrix of the circuit.
+        time : float, current time if called from .TR analisis. Optional. The
+        default is 0.
+
+    Returns:
+        current_sol : np.array with the non lineal solution of the operation
+        point.
+
+    """
     non_lineal_voltages = np.zeros(b)
     non_lineal_index = []
     for branch in branch_list:
@@ -1038,9 +1360,10 @@ def solve_non_lineal_op(b, n, t, u, branch_list, a, time=0):
 
 def solve_circuit(filename):
     """
-    This function a path with <filename>.cir document and solve the circuit that contains
+        This function a path with <filename>.cir document and solve the circuit
+        that contains
     Args:
-    filename: str with the path+filename of the document to solve.
+        filename: str with the path+filename of the document to solve.
 
     """
     # Parse the circuit

@@ -2,9 +2,11 @@
 # -*- coding: utf-8 -*-
 """
 .. module:: zlel_main.py
-    :synopsis:
+    :synopsis: this module contains some auxiliar functionalities for solve
+    circuits used in zlel_p1.py.
 
-.. moduleauthor:: YOUR NAME AND E-MAIL
+.. moduleauthor:: Ander Dokando (anddokan@gmail.com) and Pello Usabiaga
+(pellousabiaga@gmail.com).
 
 
 """
@@ -12,12 +14,6 @@
 import numpy as np
 import sys
 import matplotlib.pyplot as plt
-"""
-if __name__ == "__main__":
-    import zlel_p1 as zl1
-else:
-    import zlel.zlel_p1 as zl1
-"""
 
 
 def getTransposeMatrix(matrix):
@@ -42,10 +38,10 @@ def print_solution(sol, b, n):
     # The instructor solution needs to be a numpy array of numpy arrays of
     # float. If it is not, convert it to this format.
     if sol.dtype == np.float64:
-        np.set_printoptions(sign=' ') # Only from numpy 1.14
+        np.set_printoptions(sign=' ')  # Only from numpy 1.14
         tmp = np.zeros([np.size(sol), 1], dtype=float)
         for ind in range(np.size(sol)):
-            tmp[ind]=np.array(sol[ind])                  
+            tmp[ind] = np.array(sol[ind])
         sol = tmp
     print("\n========== Nodes voltage to reference ========")
     for i in range(1, n):
@@ -138,12 +134,6 @@ def plot_from_cvs(filename, x, y, title):
     ax1.set_ylabel(y)
     plt.show()
 
-
-"""
-https://stackoverflow.com/questions/419163/what-does-if-name-main-do
-https://stackoverflow.com/questions/19747371/
-python-exit-commands-why-so-many-and-when-should-each-be-used
-"""
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:

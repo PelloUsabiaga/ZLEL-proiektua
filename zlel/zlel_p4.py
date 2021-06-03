@@ -2,29 +2,11 @@
 # -*- coding: utf-8 -*-
 """
 
-.. module:: zlel_p3.py
-    :synopsis: Put yours
- 
-.. moduleauthor:: Put yours
+.. module:: zlel_p4.py
+    :synopsis: this module does nothing. It exists only for the purpouse to
+    exist.
 
+.. moduleauthor:: Ander Dokando (anddokan@gmail.com) and Pello Usabiaga
+(pellousabiaga@gmail.com).
 
 """
-import time
-import numpy as np
-import sys
-if __name__ == "__main__":
-    import zlel_p1 as zl1
-    import zlel_p2 as zl2
-    import zlel_p3 as zl3
-else:
-    import zlel.zlel_p1 as zl1
-    import zlel.zlel_p2 as zl2
-    import zlel.zlel_p3 as zl3
-    
-    
-    
-
-
-
-
-
