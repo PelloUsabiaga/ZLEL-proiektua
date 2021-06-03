@@ -10,7 +10,6 @@
 """
 
 import zlel.zlel_p1_errore_kontrola as zl1
-import zlel.zlel_p2 as zl2
 import sys
 
 
@@ -23,4 +22,3 @@ if __name__ == "__main__":
     zl1.solve_circuit(path + filename)
     filenameTR = filename[:-3] + "tr"
     filenameDC = filename[:-3] + "dc"
-    zl2.plot_from_cvs(path + filenameDC, "V", "i3", "wololo")
